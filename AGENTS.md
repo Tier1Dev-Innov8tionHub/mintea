@@ -38,7 +38,7 @@ Convex deployment env (set via `npx convex env set`):
 - `SITE_URL` — e.g. `http://localhost:3000`
 - `JWT_PRIVATE_KEY` / `JWKS` — Convex Auth signing keys
 - `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` — Google OAuth (optional for local password auth)
-- `AUTH_ALLOWED_EMAILS` — comma-separated allowlist (empty = allow all in local/agent mode)
+- `AUTH_ALLOWED_EMAILS` — `moniquemcintosh1234@gmail.com,mgrant90@gmail.com` (empty = allow all; use `.env.defaults`)
 
 ## Auth model
 

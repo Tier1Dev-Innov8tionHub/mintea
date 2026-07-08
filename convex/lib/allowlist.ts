@@ -1,6 +1,6 @@
 /**
  * Comma-separated allowlist of emails that may sign in.
- * Example: AUTH_ALLOWED_EMAILS=you@example.com,partner@example.com
+ * Example: AUTH_ALLOWED_EMAILS=moniquemcintosh1234@gmail.com,mgrant90@gmail.com
  *
  * When unset or empty, all emails are allowed (local/agent development).
  * Set this in production so only the household can authenticate.

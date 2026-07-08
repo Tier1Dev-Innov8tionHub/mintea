@@ -49,7 +49,8 @@ Open [http://localhost:3000](http://localhost:3000) and sign in.
 2. Set `SITE_URL` to your app origin.
 3. Create a Google OAuth client; set redirect to `{CONVEX_SITE_URL}/api/auth/callback/google`.
 4. `npx convex env set AUTH_GOOGLE_ID …` and `AUTH_GOOGLE_SECRET …`
-5. `npx convex env set AUTH_ALLOWED_EMAILS you@example.com,partner@example.com`
+5. `npx convex env set AUTH_ALLOWED_EMAILS moniquemcintosh1234@gmail.com,mgrant90@gmail.com`
+   (or `npx convex env set < .env.defaults`)
 
 Password auth works without Google for local development.
 
