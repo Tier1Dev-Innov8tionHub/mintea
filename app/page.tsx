@@ -14,6 +14,7 @@ import {
   useCategories,
   useGoals,
   useSettings,
+  useFinanceMutations,
 } from "@/lib/db/hooks";
 import {
   netCash,
@@ -21,7 +22,6 @@ import {
   dailySpendingChart,
 } from "@/lib/calculations";
 import { formatCurrency, formatShortDate } from "@/lib/format";
-import { touchSync } from "@/lib/db/seed";
 import { subMonths } from "date-fns";
 import {
   Building2,
@@ -41,6 +41,7 @@ export default function DashboardPage() {
   const categories = useCategories();
   const goals = useGoals();
   const { settings } = useSettings();
+  const { touchSync } = useFinanceMutations();
   const [showAdd, setShowAdd] = useState(false);
   const [syncing, setSyncing] = useState(false);
 

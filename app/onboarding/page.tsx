@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getSettings, updateSettings } from "@/lib/db/seed";
+import { useSettings, useFinanceMutations } from "@/lib/db/hooks";
 import { SpendingChart } from "@/components/charts";
 import { formatCurrency } from "@/lib/format";
 import { Leaf, ChevronLeft } from "lucide-react";
@@ -29,18 +29,18 @@ const SLIDES = [
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { settings } = useSettings();
+  const { updateSettings } = useFinanceMutations();
   const [slide, setSlide] = useState(0);
   const [step, setStep] = useState<"slides" | "setup">("slides");
   const [displayName, setDisplayName] = useState("");
   const [monthlyBudget, setMonthlyBudget] = useState("3500");
 
   useEffect(() => {
-    getSettings().then((s) => {
-      if (s.onboardingComplete) {
-        router.replace("/");
-      }
-    });
-  }, [router]);
+    if (settings?.onboardingComplete) {
+      router.replace("/");
+    }
+  }, [router, settings]);
 
   const handleFinish = async () => {
     await updateSettings({
@@ -86,12 +86,11 @@ export default function OnboardingPage() {
   const current = SLIDES[slide];
   const mockChartData = Array.from({ length: 28 }, (_, i) => ({
     day: i + 1,
-    cumulative: Math.round(50 + i * 85 + Math.random() * 40),
+    cumulative: Math.round(50 + i * 85 + ((i * 17) % 40)),
   }));
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
-      {/* Preview card area */}
       <div className="flex-1 flex items-center justify-center px-6 pt-12">
         <div className="w-full max-w-xs">
           {slide === 0 && (
@@ -152,7 +151,6 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      {/* Text + navigation */}
       <div className="px-6 pb-8 text-center">
         <h2 className="text-2xl font-bold">{current.title}</h2>
         <p className="text-xl text-gray-500">{current.subtitle}</p>

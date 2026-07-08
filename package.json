@@ -3,34 +3,39 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "npm-run-all --parallel dev:frontend dev:backend",
+    "dev:frontend": "next dev",
+    "dev:backend": "CONVEX_AGENT_MODE=anonymous convex dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@auth/core": "^0.41.1",
+    "@convex-dev/auth": "^0.0.94",
     "@ducanh2912/next-pwa": "^10.2.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "convex": "^1.42.1",
+    "convex-helpers": "^0.1.120",
     "date-fns": "^4.4.0",
-    "dexie": "^4.4.4",
-    "dexie-react-hooks": "^4.4.0",
     "lucide-react": "^1.23.0",
     "next": "16.2.10",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "recharts": "^3.9.2",
-    "tailwind-merge": "^3.6.0",
-    "uuid": "^14.0.1"
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
+    "@convex-dev/eslint-plugin": "^2.0.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/uuid": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
+    "npm-run-all": "^4.1.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

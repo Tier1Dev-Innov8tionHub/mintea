@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 import { MobileShell } from "@/components/layout/mobile-shell";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { GoalProgressCard } from "@/components/dashboard/cards";
 import { GoalIcon } from "@/components/icons/category-icon";
-import { useGoals, addGoal, depositToGoal } from "@/lib/db/hooks";
+import { useGoals, useFinanceMutations } from "@/lib/db/hooks";
 import { formatCurrency } from "@/lib/format";
 import { Plus } from "lucide-react";
 
@@ -16,6 +15,7 @@ const GOAL_ICONS = ["piggy-bank", "umbrella", "palmtree", "laptop", "home"];
 
 export default function GoalsPage() {
   const goals = useGoals();
+  const { addGoal, depositToGoal } = useFinanceMutations();
   const [showAdd, setShowAdd] = useState(false);
   const [showDeposit, setShowDeposit] = useState<string | null>(null);
   const [depositAmount, setDepositAmount] = useState("");

@@ -1,28 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuthActions } from "@convex-dev/auth/react";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
-import { getSettings, updateSettings, clearAllData, seedDatabase } from "@/lib/db/seed";
-import { Leaf, Trash2, Smartphone } from "lucide-react";
+import { useSettings, useFinanceMutations } from "@/lib/db/hooks";
+import { Leaf, Trash2, Smartphone, LogOut } from "lucide-react";
+import type { Settings } from "@/lib/db/schema";
 
-export default function SettingsPage() {
+function SettingsForm({ settings }: { settings: Settings }) {
   const router = useRouter();
-  const [displayName, setDisplayName] = useState("");
-  const [monthlyBudget, setMonthlyBudget] = useState("3500");
+  const { signOut } = useAuthActions();
+  const { updateSettings, clearAndReseed } = useFinanceMutations();
+  const [displayName, setDisplayName] = useState(settings.displayName);
+  const [monthlyBudget, setMonthlyBudget] = useState(String(settings.monthlyBudget));
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
-    getSettings().then((s) => {
-      setDisplayName(s.displayName);
-      setMonthlyBudget(String(s.monthlyBudget));
-    });
-  }, []);
 
   const handleSave = async () => {
     await updateSettings({
@@ -34,8 +31,7 @@ export default function SettingsPage() {
   };
 
   const handleClear = async () => {
-    await clearAllData();
-    await seedDatabase();
+    await clearAndReseed();
     setShowClearConfirm(false);
     router.push("/");
     router.refresh();
@@ -73,6 +69,7 @@ export default function SettingsPage() {
                 <p className="font-semibold">Install as App</p>
                 <p className="text-sm text-gray-500 mt-1">
                   On iPhone: tap Share → Add to Home Screen. On Android: tap the menu → Install app.
+                  Data syncs to the cloud when you&apos;re online.
                 </p>
               </div>
             </div>
@@ -86,11 +83,17 @@ export default function SettingsPage() {
               <p className="font-semibold">About mintea</p>
             </div>
             <p className="text-sm text-gray-500">
-              mintea is a personal finance tracker. All your data is stored locally in your browser — nothing is sent to any server.
+              mintea is a shared household finance tracker. Your data syncs via Convex so both of you
+              can use it on any device.
             </p>
             <p className="text-xs text-gray-400 mt-2">Version 0.1.0</p>
           </CardContent>
         </Card>
+
+        <Button variant="outline" className="w-full gap-2" onClick={() => signOut()}>
+          <LogOut className="h-4 w-4" />
+          Sign out
+        </Button>
 
         <Button
           variant="destructive"
@@ -98,23 +101,37 @@ export default function SettingsPage() {
           onClick={() => setShowClearConfirm(true)}
         >
           <Trash2 className="h-4 w-4" />
-          Clear All Data
+          Reset Demo Data
         </Button>
       </div>
 
-      <Modal open={showClearConfirm} onClose={() => setShowClearConfirm(false)} title="Clear All Data?">
+      <Modal open={showClearConfirm} onClose={() => setShowClearConfirm(false)} title="Reset Demo Data?">
         <p className="text-sm text-gray-600 mb-4">
-          This will delete all your transactions, budgets, goals, and settings, then reload with demo data. This cannot be undone.
+          This will delete all household transactions, budgets, goals, and settings, then reload with demo data. This cannot be undone.
         </p>
         <div className="flex gap-3">
           <Button variant="outline" onClick={() => setShowClearConfirm(false)} className="flex-1">
             Cancel
           </Button>
           <Button variant="destructive" onClick={handleClear} className="flex-1">
-            Clear Data
+            Reset Data
           </Button>
         </div>
       </Modal>
     </MobileShell>
   );
+}
+
+export default function SettingsPage() {
+  const { settings } = useSettings();
+
+  if (!settings) {
+    return (
+      <MobileShell title="Settings" showBack>
+        <p className="text-sm text-gray-500">Loading settings…</p>
+      </MobileShell>
+    );
+  }
+
+  return <SettingsForm settings={settings} />;
 }

@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/modal";
 import { CategoryIcon } from "@/components/icons/category-icon";
 import { TransactionRow } from "@/components/dashboard/cards";
-import { useTransactions, useCategories } from "@/lib/db/hooks";
+import { useTransactions, useCategories, useFinanceMutations } from "@/lib/db/hooks";
 import {
   monthlySpend,
   spendingByCategory,
@@ -17,11 +17,11 @@ import {
 import { formatCurrency, formatMonthYear } from "@/lib/format";
 import { addMonths, subMonths } from "date-fns";
 import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown } from "lucide-react";
-import { updateTransaction } from "@/lib/db/hooks";
 
 export default function SpendingPage() {
   const transactions = useTransactions();
   const categories = useCategories();
+  const { updateTransaction } = useFinanceMutations();
   const [month, setMonth] = useState(new Date());
 
   const spend = monthlySpend(transactions, month);

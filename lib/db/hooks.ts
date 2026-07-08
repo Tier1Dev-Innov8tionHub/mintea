@@ -1,114 +1,200 @@
 "use client";
 
-import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "./index";
-import { seedDatabase, getSettings, touchSync } from "./seed";
+import { useConvexAuth, useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
+import type { Goal, Recurring, Settings, Transaction } from "./schema";
 import { useEffect, useState } from "react";
 
 export function useDbInit() {
-  const [ready, setReady] = useState(false);
+  const { isAuthenticated, isLoading } = useConvexAuth();
+  const viewer = useQuery(api.users.viewer, isAuthenticated ? {} : "skip");
+  const ensureHousehold = useMutation(api.seed.ensureHousehold);
+  const [error, setError] = useState<string | null>(null);
+
+  const needsHousehold =
+    Boolean(isAuthenticated) && viewer !== undefined && !viewer?.householdId;
+  const hasHousehold = Boolean(viewer?.householdId);
 
   useEffect(() => {
-    seedDatabase().then(() => setReady(true));
-  }, []);
+    if (!needsHousehold) return;
 
-  return ready;
+    let cancelled = false;
+    void (async () => {
+      try {
+        await ensureHousehold({});
+        if (!cancelled) setError(null);
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : "Failed to initialize household",
+          );
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [needsHousehold, ensureHousehold]);
+
+  return {
+    ready: Boolean(isAuthenticated && hasHousehold && !error),
+    isLoading:
+      isLoading ||
+      (Boolean(isAuthenticated) && viewer === undefined) ||
+      needsHousehold,
+    error,
+    isAuthenticated,
+  };
 }
 
 export function useAccounts() {
-  return useLiveQuery(() => db.accounts.toArray(), []) ?? [];
+  const { isAuthenticated } = useConvexAuth();
+  return useQuery(api.accounts.list, isAuthenticated ? {} : "skip") ?? [];
 }
 
 export function useTransactions() {
-  return useLiveQuery(() => db.transactions.orderBy("date").reverse().toArray(), []) ?? [];
+  const { isAuthenticated } = useConvexAuth();
+  return useQuery(api.transactions.list, isAuthenticated ? {} : "skip") ?? [];
 }
 
 export function useCategories() {
-  return useLiveQuery(() => db.categories.toArray(), []) ?? [];
+  const { isAuthenticated } = useConvexAuth();
+  return useQuery(api.categories.list, isAuthenticated ? {} : "skip") ?? [];
 }
 
 export function useBudgets() {
-  return useLiveQuery(() => db.budgets.toArray(), []) ?? [];
+  const { isAuthenticated } = useConvexAuth();
+  return useQuery(api.budgets.list, isAuthenticated ? {} : "skip") ?? [];
 }
 
 export function useGoals() {
-  return useLiveQuery(() => db.goals.toArray(), []) ?? [];
+  const { isAuthenticated } = useConvexAuth();
+  return useQuery(api.goals.list, isAuthenticated ? {} : "skip") ?? [];
 }
 
 export function useRecurring() {
-  return useLiveQuery(() => db.recurring.toArray(), []) ?? [];
+  const { isAuthenticated } = useConvexAuth();
+  return useQuery(api.recurring.list, isAuthenticated ? {} : "skip") ?? [];
 }
 
 export function useSettings() {
-  const [settings, setSettings] = useState<Awaited<ReturnType<typeof getSettings>> | null>(null);
-
-  useEffect(() => {
-    getSettings().then(setSettings);
-  }, []);
-
-  const refresh = () => getSettings().then(setSettings);
-
-  return { settings, refresh };
+  const { isAuthenticated } = useConvexAuth();
+  const settings = useQuery(api.settings.get, isAuthenticated ? {} : "skip");
+  return {
+    settings: (settings ?? null) as Settings | null,
+    refresh: async () => undefined,
+  };
 }
 
-export async function addTransaction(data: Omit<import("./schema").Transaction, "id">) {
-  const { v4: uuidv4 } = await import("uuid");
-  await db.transactions.add({ ...data, id: uuidv4() });
-  await touchSync();
-}
+export function useFinanceMutations() {
+  const createTransaction = useMutation(api.transactions.create);
+  const updateTransactionMut = useMutation(api.transactions.update);
+  const removeTransaction = useMutation(api.transactions.remove);
+  const createGoal = useMutation(api.goals.create);
+  const updateGoalMut = useMutation(api.goals.update);
+  const depositGoal = useMutation(api.goals.deposit);
+  const createRecurring = useMutation(api.recurring.create);
+  const updateRecurringMut = useMutation(api.recurring.update);
+  const updateBudgetMut = useMutation(api.budgets.updateAmount);
+  const upsertBudgetMut = useMutation(api.budgets.upsert);
+  const updateSettingsMut = useMutation(api.settings.update);
+  const resetDemo = useMutation(api.seed.resetDemoData);
+  const touch = useMutation(api.seed.touchLastSynced);
 
-export async function updateTransaction(id: string, data: Partial<import("./schema").Transaction>) {
-  await db.transactions.update(id, data);
-  await touchSync();
-}
-
-export async function deleteTransaction(id: string) {
-  await db.transactions.delete(id);
-  await touchSync();
-}
-
-export async function addGoal(data: Omit<import("./schema").Goal, "id">) {
-  const { v4: uuidv4 } = await import("uuid");
-  await db.goals.add({ ...data, id: uuidv4() });
-  await touchSync();
-}
-
-export async function updateGoal(id: string, data: Partial<import("./schema").Goal>) {
-  await db.goals.update(id, data);
-  await touchSync();
-}
-
-export async function depositToGoal(goalId: string, amount: number) {
-  const goal = await db.goals.get(goalId);
-  if (goal) {
-    await db.goals.update(goalId, { currentAmount: goal.currentAmount + amount });
-    await touchSync();
-  }
-}
-
-export async function addRecurring(data: Omit<import("./schema").Recurring, "id">) {
-  const { v4: uuidv4 } = await import("uuid");
-  await db.recurring.add({ ...data, id: uuidv4() });
-  await touchSync();
-}
-
-export async function updateRecurring(id: string, data: Partial<import("./schema").Recurring>) {
-  await db.recurring.update(id, data);
-  await touchSync();
-}
-
-export async function updateBudget(id: string, amount: number) {
-  await db.budgets.update(id, { amount });
-  await touchSync();
-}
-
-export async function upsertBudget(categoryId: string, month: string, amount: number) {
-  const existing = await db.budgets.where({ categoryId, month }).first();
-  if (existing) {
-    await db.budgets.update(existing.id, { amount });
-  } else {
-    const { v4: uuidv4 } = await import("uuid");
-    await db.budgets.add({ id: uuidv4(), categoryId, month, amount });
-  }
-  await touchSync();
+  return {
+    addTransaction: async (data: Omit<Transaction, "id">) => {
+      await createTransaction({
+        accountId: data.accountId as Id<"accounts">,
+        type: data.type,
+        amount: data.amount,
+        categoryId: (data.categoryId as Id<"categories"> | null) ?? null,
+        description: data.description,
+        date: data.date,
+        isIgnored: data.isIgnored,
+        recurringId: data.recurringId as Id<"recurring"> | undefined,
+      });
+    },
+    updateTransaction: async (id: string, data: Partial<Transaction>) => {
+      await updateTransactionMut({
+        id: id as Id<"transactions">,
+        accountId: data.accountId as Id<"accounts"> | undefined,
+        type: data.type,
+        amount: data.amount,
+        categoryId:
+          data.categoryId === undefined
+            ? undefined
+            : ((data.categoryId as Id<"categories"> | null) ?? null),
+        description: data.description,
+        date: data.date,
+        isIgnored: data.isIgnored,
+      });
+    },
+    deleteTransaction: async (id: string) => {
+      await removeTransaction({ id: id as Id<"transactions"> });
+    },
+    addGoal: async (data: Omit<Goal, "id">) => {
+      await createGoal(data);
+    },
+    updateGoal: async (id: string, data: Partial<Goal>) => {
+      await updateGoalMut({
+        id: id as Id<"goals">,
+        name: data.name,
+        icon: data.icon,
+        targetAmount: data.targetAmount,
+        currentAmount: data.currentAmount,
+        status: data.status,
+        deadline: data.deadline,
+      });
+    },
+    depositToGoal: async (goalId: string, amount: number) => {
+      await depositGoal({ goalId: goalId as Id<"goals">, amount });
+    },
+    addRecurring: async (data: Omit<Recurring, "id">) => {
+      await createRecurring({
+        name: data.name,
+        amount: data.amount,
+        frequency: data.frequency,
+        nextDate: data.nextDate,
+        categoryId: data.categoryId as Id<"categories">,
+        active: data.active,
+      });
+    },
+    updateRecurring: async (id: string, data: Partial<Recurring>) => {
+      await updateRecurringMut({
+        id: id as Id<"recurring">,
+        name: data.name,
+        amount: data.amount,
+        frequency: data.frequency,
+        nextDate: data.nextDate,
+        categoryId: data.categoryId as Id<"categories"> | undefined,
+        active: data.active,
+      });
+    },
+    updateBudget: async (id: string, amount: number) => {
+      await updateBudgetMut({ id: id as Id<"budgets">, amount });
+    },
+    upsertBudget: async (categoryId: string, month: string, amount: number) => {
+      await upsertBudgetMut({
+        categoryId: categoryId as Id<"categories">,
+        month,
+        amount,
+      });
+    },
+    updateSettings: async (updates: Partial<Settings>) => {
+      await updateSettingsMut({
+        displayName: updates.displayName,
+        monthlyBudget: updates.monthlyBudget,
+        currency: updates.currency,
+        onboardingComplete: updates.onboardingComplete,
+      });
+    },
+    clearAndReseed: async () => {
+      await resetDemo({});
+    },
+    touchSync: async () => {
+      await touch({});
+    },
+  };
 }

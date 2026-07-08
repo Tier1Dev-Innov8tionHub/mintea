@@ -10,7 +10,7 @@ import { CategoryIcon } from "@/components/icons/category-icon";
 import { AddTransactionSheet } from "@/components/transactions/add-transaction-sheet";
 import { EditTransactionSheet } from "@/components/transactions/edit-transaction-sheet";
 import { useTransactions, useCategories } from "@/lib/db/hooks";
-import { formatCurrency, formatShortDate } from "@/lib/format";
+import { formatShortDate } from "@/lib/format";
 import { format, parseISO } from "date-fns";
 import { Plus, Search, SlidersHorizontal } from "lucide-react";
 import type { Transaction, TransactionType } from "@/lib/db/schema";

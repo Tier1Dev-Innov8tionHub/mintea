@@ -60,7 +60,15 @@ interface BudgetDonutProps {
 export function BudgetDonut({ data, total, size = 180 }: BudgetDonutProps) {
   const radius = size / 2 - 10;
   const circumference = 2 * Math.PI * radius;
-  let offset = 0;
+  const segments = data.reduce<
+    { color: string; dash: number; offset: number }[]
+  >((acc, item) => {
+    const pct = total > 0 ? item.amount / total : 0;
+    const dash = pct * circumference;
+    const offset = acc.reduce((sum, s) => sum + s.dash, 0);
+    acc.push({ color: item.color, dash, offset });
+    return acc;
+  }, []);
 
   return (
     <div className="relative mx-auto" style={{ width: size, height: size }}>
@@ -73,26 +81,20 @@ export function BudgetDonut({ data, total, size = 180 }: BudgetDonutProps) {
           stroke="#E5E7EB"
           strokeWidth={20}
         />
-        {data.map((item, i) => {
-          const pct = total > 0 ? item.amount / total : 0;
-          const dash = pct * circumference;
-          const currentOffset = offset;
-          offset += dash;
-          return (
+        {segments.map((segment, i) => (
             <circle
               key={i}
               cx={size / 2}
               cy={size / 2}
               r={radius}
               fill="none"
-              stroke={item.color}
+              stroke={segment.color}
               strokeWidth={20}
-              strokeDasharray={`${dash} ${circumference - dash}`}
-              strokeDashoffset={-currentOffset}
+              strokeDasharray={`${segment.dash} ${circumference - segment.dash}`}
+              strokeDashoffset={-segment.offset}
               strokeLinecap="butt"
             />
-          );
-        })}
+        ))}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <p className="text-xs text-gray-500">Monthly earnings</p>

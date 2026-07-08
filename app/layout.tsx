@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/components/layout/app-provider";
 import { OnboardingGuard } from "@/components/layout/onboarding-guard";
+import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
+import { ConvexClientProvider } from "@/components/providers/convex-client-provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -38,12 +40,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full`}>
-      <body className="min-h-full bg-gray-50 font-sans antialiased">
-        <AppProvider>
-          <OnboardingGuard>{children}</OnboardingGuard>
-        </AppProvider>
-      </body>
-    </html>
+    <ConvexAuthNextjsServerProvider>
+      <html lang="en" className={`${inter.variable} h-full`}>
+        <body className="min-h-full bg-gray-50 font-sans antialiased">
+          <ConvexClientProvider>
+            <AppProvider>
+              <OnboardingGuard>{children}</OnboardingGuard>
+            </AppProvider>
+          </ConvexClientProvider>
+        </body>
+      </html>
+    </ConvexAuthNextjsServerProvider>
   );
 }

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Sheet } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { addTransaction, useCategories, useAccounts } from "@/lib/db/hooks";
+import { useCategories, useAccounts, useFinanceMutations } from "@/lib/db/hooks";
 import { CategoryIcon } from "@/components/icons/category-icon";
 import type { TransactionType } from "@/lib/db/schema";
 import { format } from "date-fns";
@@ -18,18 +18,15 @@ interface AddTransactionSheetProps {
 export function AddTransactionSheet({ open, onClose, defaultType = "expense" }: AddTransactionSheetProps) {
   const categories = useCategories();
   const accounts = useAccounts();
+  const { addTransaction } = useFinanceMutations();
   const [type, setType] = useState<TransactionType>(defaultType);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
-  const [accountId, setAccountId] = useState("");
+  const [accountId, setAccountId] = useState<string | null>(null);
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
 
-  useEffect(() => {
-    if (accounts.length > 0 && !accountId) {
-      setAccountId(accounts[0].id);
-    }
-  }, [accounts, accountId]);
+  const selectedAccountId = accountId ?? accounts[0]?.id ?? "";
 
   const filteredCategories = categories.filter((c) => {
     if (type === "income") return c.group === "income";
@@ -38,9 +35,9 @@ export function AddTransactionSheet({ open, onClose, defaultType = "expense" }: 
   });
 
   const handleSave = async () => {
-    if (!amount || !accountId) return;
+    if (!amount || !selectedAccountId) return;
     await addTransaction({
-      accountId,
+      accountId: selectedAccountId,
       type,
       amount: parseFloat(amount),
       categoryId,
@@ -51,6 +48,7 @@ export function AddTransactionSheet({ open, onClose, defaultType = "expense" }: 
     setAmount("");
     setDescription("");
     setCategoryId(null);
+    setAccountId(null);
     onClose();
   };
 
@@ -111,7 +109,7 @@ export function AddTransactionSheet({ open, onClose, defaultType = "expense" }: 
         <div>
           <p className="mb-2 text-xs font-medium text-gray-500 px-1">Account</p>
           <select
-            value={accountId}
+            value={selectedAccountId}
             onChange={(e) => setAccountId(e.target.value)}
             className="w-full rounded-2xl bg-gray-100 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >

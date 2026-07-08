@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
-import { useRecurring, useCategories, addRecurring } from "@/lib/db/hooks";
+import { useRecurring, useCategories, useFinanceMutations } from "@/lib/db/hooks";
 import { recurringUpcoming, recurringLater } from "@/lib/calculations";
 import { formatCurrency, daysUntil } from "@/lib/format";
 import { format, addDays, eachDayOfInterval } from "date-fns";
@@ -35,14 +35,13 @@ function BillIcon({ name }: { name: string }) {
 export default function RecurringPage() {
   const recurring = useRecurring();
   const categories = useCategories();
+  const { addRecurring } = useFinanceMutations();
   const [tab, setTab] = useState<"upcoming" | "all">("upcoming");
   const [showAdd, setShowAdd] = useState(false);
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [nextDate, setNextDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [frequency, setFrequency] = useState<"weekly" | "monthly" | "yearly">("monthly");
-  const [categoryId, setCategoryId] = useState("");
-
   const upcoming = recurringUpcoming(recurring);
   const later = recurringLater(recurring);
   const displayList = tab === "upcoming" ? [...upcoming, ...later] : recurring.filter((r) => r.active);
@@ -53,7 +52,8 @@ export default function RecurringPage() {
 
   const handleAdd = async () => {
     if (!name || !amount) return;
-    const catId = categoryId || categories.find((c) => c.group === "bills")?.id || categories[0]?.id;
+    const catId = categories.find((c) => c.group === "bills")?.id || categories[0]?.id;
+    if (!catId) return;
     await addRecurring({
       name,
       amount: parseFloat(amount),
