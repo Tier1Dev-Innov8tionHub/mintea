@@ -33,15 +33,21 @@ Client (`.env.local`, written by `npx convex init` / `convex dev`):
 - `NEXT_PUBLIC_CONVEX_URL`
 - `NEXT_PUBLIC_CONVEX_SITE_URL`
 
-Convex deployment env (set via `npx convex env set`):
+Convex deployment env (set via `npx convex env set`, or `npx convex env set < .env.defaults`):
 
 - `SITE_URL` — e.g. `http://localhost:3000`
 - `JWT_PRIVATE_KEY` / `JWKS` — Convex Auth signing keys
 - `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` — Google OAuth (optional for local password auth)
-- `AUTH_ALLOWED_EMAILS` — `moniquemcintosh1234@gmail.com,mgrant90@gmail.com` (empty = allow all; use `.env.defaults`)
+- `AUTH_ALLOWED_EMAILS` — `moniquemcintosh1234@gmail.com,mgrant90@gmail.com`
 
 ## Auth model
 
 - Shared **household** workspace (max 2 members); second allowlisted user auto-joins.
 - Convex Auth with Google OAuth + Password (password helps local/agent testing without Google credentials).
 - Records may include `createdBy` for attribution.
+
+## Notes
+
+- Onboarding gates the app after sign-in; settings live in Convex `settings` for the household.
+- PWA/service worker is disabled in development (`next.config.ts`); test via `npm run build && npm run start`.
+- Unauthenticated routes redirect to `/signin` via `middleware.ts`.

@@ -13,6 +13,22 @@ A shared household finance tracker PWA built with Next.js and Convex. Track spen
 - **Auth** — Convex Auth (Google OAuth + email/password) with an email allowlist
 - **PWA** — Install on your phone; requires connectivity for data sync
 
+## Screens
+
+| Route | Description |
+| --- | --- |
+| `/signin` | Sign in / sign up |
+| `/` | Dashboard / home overview |
+| `/spending` | Spending breakdown by category |
+| `/budgets` | Category budgets and progress |
+| `/transactions` | Full transaction list with search and filters |
+| `/recurring` | Recurring bills and subscriptions |
+| `/goals` | Savings goals |
+| `/more` | Secondary navigation |
+| `/settings` | Preferences, sign out, reset demo data |
+| `/onboarding` | First-run personalization |
+| `/offline` | Offline fallback page |
+
 ## Tech Stack
 
 - Next.js 16 (App Router) + TypeScript
@@ -29,6 +45,7 @@ npm install
 
 # Start Convex (anonymous agent mode works without a Convex login)
 export CONVEX_AGENT_MODE=anonymous
+npx convex env set < .env.defaults
 npx convex dev
 
 # In another terminal (or use npm run dev for both)
@@ -41,7 +58,7 @@ Or run both:
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) and sign in.
+Open [http://localhost:3000](http://localhost:3000) and sign in with an allowlisted account.
 
 ### Auth setup (production / Google)
 
