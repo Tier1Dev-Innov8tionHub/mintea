@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import {
   LayoutGrid,
   CalendarClock,
@@ -55,9 +56,36 @@ export function Sidebar() {
           );
         })}
       </nav>
-      <div className="border-t border-gray-100 p-4">
-        <p className="text-xs text-gray-400">Personal finance tracker</p>
-        <p className="text-xs text-gray-400">Data stored locally</p>
+      <div className="border-t border-gray-100 p-4 space-y-3">
+        <Show when="signed-out">
+          <div className="flex flex-col gap-2">
+            <SignInButton mode="modal">
+              <button
+                type="button"
+                className="w-full rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700"
+              >
+                Sign in
+              </button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <button
+                type="button"
+                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Sign up
+              </button>
+            </SignUpButton>
+          </div>
+        </Show>
+        <Show when="signed-in">
+          <div className="flex items-center gap-3">
+            <UserButton />
+            <div>
+              <p className="text-xs text-gray-400">Personal finance tracker</p>
+              <p className="text-xs text-gray-400">Synced via Convex</p>
+            </div>
+          </div>
+        </Show>
       </div>
     </aside>
   );

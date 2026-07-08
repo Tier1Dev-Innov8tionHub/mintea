@@ -1,13 +1,13 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
-import { requireHouseholdId } from "./lib/household";
+import { requireHouseholdIdForQuery } from "./lib/household";
 import { categoryDoc } from "./lib/validators";
 
 export const list = query({
   args: {},
   returns: v.array(categoryDoc),
   handler: async (ctx) => {
-    const { householdId } = await requireHouseholdId(ctx);
+    const { householdId } = await requireHouseholdIdForQuery(ctx);
     const rows = await ctx.db
       .query("categories")
       .withIndex("by_household", (q) => q.eq("householdId", householdId))

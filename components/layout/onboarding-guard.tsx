@@ -13,7 +13,14 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isLoading || !isAuthenticated) return;
-    if (pathname === "/onboarding" || pathname === "/signin") return;
+    if (
+      pathname === "/onboarding" ||
+      pathname === "/signin" ||
+      pathname.startsWith("/sign-in") ||
+      pathname.startsWith("/sign-up")
+    ) {
+      return;
+    }
     if (settings && !settings.onboardingComplete) {
       router.replace("/onboarding");
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { Settings, Bell, ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
@@ -48,6 +49,33 @@ export function MobileShell({
           </div>
           <div className="flex items-center gap-2">
             {headerExtra}
+            <Show when="signed-out">
+              <SignInButton mode="modal">
+                <button
+                  type="button"
+                  className="rounded-full bg-white/15 px-3 py-1 text-xs font-medium hover:bg-white/25"
+                >
+                  Sign in
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button
+                  type="button"
+                  className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
+                >
+                  Sign up
+                </button>
+              </SignUpButton>
+            </Show>
+            <Show when="signed-in">
+              <UserButton
+                appearance={{
+                  elements: {
+                    avatarBox: "h-7 w-7",
+                  },
+                }}
+              />
+            </Show>
             {!showBack && (
               <button className="rounded-full p-1 hover:bg-white/10">
                 <Bell className="h-5 w-5" />

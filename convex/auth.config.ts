@@ -1,10 +1,12 @@
-const authConfig = {
+import type { AuthConfig } from "convex/server";
+
+export default {
   providers: [
     {
-      domain: process.env.CONVEX_SITE_URL,
+      // Clerk Frontend API URL (issuer domain). Set on the Convex deployment:
+      // npx convex env set CLERK_JWT_ISSUER_DOMAIN https://your-instance.clerk.accounts.dev
+      domain: process.env.CLERK_JWT_ISSUER_DOMAIN!,
       applicationID: "convex",
     },
   ],
-};
-
-export default authConfig;
+} satisfies AuthConfig;

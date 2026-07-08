@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthActions } from "@convex-dev/auth/react";
+import { useClerk } from "@clerk/nextjs";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import type { Settings } from "@/lib/db/schema";
 
 function SettingsForm({ settings }: { settings: Settings }) {
   const router = useRouter();
-  const { signOut } = useAuthActions();
+  const { signOut } = useClerk();
   const { updateSettings, clearAndReseed } = useFinanceMutations();
   const [displayName, setDisplayName] = useState(settings.displayName);
   const [monthlyBudget, setMonthlyBudget] = useState(String(settings.monthlyBudget));
@@ -90,7 +90,11 @@ function SettingsForm({ settings }: { settings: Settings }) {
           </CardContent>
         </Card>
 
-        <Button variant="outline" className="w-full gap-2" onClick={() => signOut()}>
+        <Button
+          variant="outline"
+          className="w-full gap-2"
+          onClick={() => void signOut({ redirectUrl: "/sign-in" })}
+        >
           <LogOut className="h-4 w-4" />
           Sign out
         </Button>

@@ -1,9 +1,9 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/components/layout/app-provider";
 import { OnboardingGuard } from "@/components/layout/onboarding-guard";
-import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { ConvexClientProvider } from "@/components/providers/convex-client-provider";
 
 const inter = Inter({
@@ -40,16 +40,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ConvexAuthNextjsServerProvider>
-      <html lang="en" className={`${inter.variable} h-full`}>
-        <body className="min-h-full bg-gray-50 font-sans antialiased">
+    <html lang="en" className={`${inter.variable} h-full`}>
+      <body className="min-h-full bg-gray-50 font-sans antialiased">
+        <ClerkProvider>
           <ConvexClientProvider>
             <AppProvider>
               <OnboardingGuard>{children}</OnboardingGuard>
             </AppProvider>
           </ConvexClientProvider>
-        </body>
-      </html>
-    </ConvexAuthNextjsServerProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }

@@ -41,9 +41,10 @@ export function useDbInit() {
   return {
     ready: Boolean(isAuthenticated && hasHousehold && !error),
     isLoading:
-      isLoading ||
-      (Boolean(isAuthenticated) && viewer === undefined) ||
-      needsHousehold,
+      !error &&
+      (isLoading ||
+        (Boolean(isAuthenticated) && viewer === undefined) ||
+        needsHousehold),
     error,
     isAuthenticated,
   };

@@ -1,7 +1,6 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
-import { getAuthUserId } from "@convex-dev/auth/server";
-import { getMembership } from "./lib/household";
+import { getCurrentUser, getMembership } from "./lib/household";
 
 export const viewer = query({
   args: {},
@@ -17,15 +16,12 @@ export const viewer = query({
     }),
   ),
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return null;
-
-    const user = await ctx.db.get(userId);
+    const user = await getCurrentUser(ctx);
     if (!user) return null;
 
-    const membership = await getMembership(ctx, userId);
+    const membership = await getMembership(ctx, user._id);
     return {
-      userId,
+      userId: user._id,
       email: user.email,
       name: user.name,
       image: user.image,

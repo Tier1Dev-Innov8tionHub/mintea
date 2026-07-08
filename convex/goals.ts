@@ -1,13 +1,17 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireHouseholdId, touchSync } from "./lib/household";
+import {
+  requireHouseholdId,
+  requireHouseholdIdForQuery,
+  touchSync,
+} from "./lib/household";
 import { goalDoc, goalStatusValidator } from "./lib/validators";
 
 export const list = query({
   args: {},
   returns: v.array(goalDoc),
   handler: async (ctx) => {
-    const { householdId } = await requireHouseholdId(ctx);
+    const { householdId } = await requireHouseholdIdForQuery(ctx);
     const rows = await ctx.db
       .query("goals")
       .withIndex("by_household", (q) => q.eq("householdId", householdId))

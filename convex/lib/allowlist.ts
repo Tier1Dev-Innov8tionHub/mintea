@@ -6,13 +6,17 @@
  * Set this in production so only the household can authenticate.
  */
 export function isEmailAllowed(email: string | undefined | null): boolean {
-  if (!email) return false;
   const raw = process.env.AUTH_ALLOWED_EMAILS?.trim();
+  // No allowlist configured → open access (local/agent development).
   if (!raw) return true;
+
   const allowed = raw
     .split(",")
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
   if (allowed.length === 0) return true;
+
+  // Allowlist is set → email claim is required.
+  if (!email) return false;
   return allowed.includes(email.trim().toLowerCase());
 }

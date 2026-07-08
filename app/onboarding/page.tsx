@@ -2,12 +2,29 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSettings, useFinanceMutations } from "@/lib/db/hooks";
 import { SpendingChart } from "@/components/charts";
 import { formatCurrency } from "@/lib/format";
 import { Leaf, ChevronLeft } from "lucide-react";
+
+function nameFromClerkUser(user: {
+  fullName: string | null;
+  firstName: string | null;
+  username: string | null;
+  primaryEmailAddress?: { emailAddress: string } | null;
+} | null | undefined): string {
+  if (!user) return "";
+  return (
+    user.fullName?.trim() ||
+    user.firstName?.trim() ||
+    user.username?.trim() ||
+    user.primaryEmailAddress?.emailAddress?.split("@")[0] ||
+    ""
+  );
+}
 
 const SLIDES = [
   {
@@ -29,12 +46,14 @@ const SLIDES = [
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { user } = useUser();
   const { settings } = useSettings();
   const { updateSettings } = useFinanceMutations();
   const [slide, setSlide] = useState(0);
   const [step, setStep] = useState<"slides" | "setup">("slides");
-  const [displayName, setDisplayName] = useState("");
   const [monthlyBudget, setMonthlyBudget] = useState("3500");
+
+  const displayName = nameFromClerkUser(user);
 
   useEffect(() => {
     if (settings?.onboardingComplete) {
@@ -58,15 +77,15 @@ export default function OnboardingPage() {
           <ChevronLeft className="h-6 w-6" />
         </button>
         <div className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full">
-          <h1 className="text-3xl font-bold mb-2">Welcome to mintea</h1>
-          <p className="text-gray-500 mb-8">Let&apos;s personalize your experience.</p>
+          <h1 className="text-3xl font-bold mb-2">
+            {displayName ? `Welcome, ${displayName}` : "Welcome to mintea"}
+          </h1>
+          <p className="text-gray-500 mb-8">
+            {displayName
+              ? "Set a monthly budget to get started."
+              : "Let\u2019s personalize your experience."}
+          </p>
           <div className="space-y-4">
-            <Input
-              label="What should we call you?*"
-              placeholder="First Name"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-            />
             <Input
               label="Monthly budget target"
               type="number"
@@ -172,7 +191,7 @@ export default function OnboardingPage() {
           </Button>
         ) : (
           <Button onClick={() => setStep("setup")} className="w-full" size="lg">
-            Create Account
+            Continue
           </Button>
         )}
 

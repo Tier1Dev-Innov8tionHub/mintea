@@ -1,13 +1,13 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireHouseholdId } from "./lib/household";
+import { requireHouseholdId, requireHouseholdIdForQuery } from "./lib/household";
 import { settingsDoc } from "./lib/validators";
 
 export const get = query({
   args: {},
   returns: v.union(settingsDoc, v.null()),
   handler: async (ctx) => {
-    const { householdId } = await requireHouseholdId(ctx);
+    const { householdId } = await requireHouseholdIdForQuery(ctx);
     const settings = await ctx.db
       .query("settings")
       .withIndex("by_household", (q) => q.eq("householdId", householdId))
