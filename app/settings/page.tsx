@@ -15,11 +15,12 @@ import type { Settings } from "@/lib/db/schema";
 function SettingsForm({ settings }: { settings: Settings }) {
   const router = useRouter();
   const { signOut } = useClerk();
-  const { updateSettings, clearAndReseed } = useFinanceMutations();
+  const { updateSettings, clearHousehold } = useFinanceMutations();
   const [displayName, setDisplayName] = useState(settings.displayName);
   const [monthlyBudget, setMonthlyBudget] = useState(String(settings.monthlyBudget));
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   const handleSave = async () => {
     await updateSettings({
@@ -31,10 +32,15 @@ function SettingsForm({ settings }: { settings: Settings }) {
   };
 
   const handleClear = async () => {
-    await clearAndReseed();
-    setShowClearConfirm(false);
-    router.push("/");
-    router.refresh();
+    setClearing(true);
+    try {
+      await clearHousehold();
+      setShowClearConfirm(false);
+      router.push("/");
+      router.refresh();
+    } finally {
+      setClearing(false);
+    }
   };
 
   return (
@@ -105,20 +111,35 @@ function SettingsForm({ settings }: { settings: Settings }) {
           onClick={() => setShowClearConfirm(true)}
         >
           <Trash2 className="h-4 w-4" />
-          Reset Demo Data
+          Clear all data
         </Button>
       </div>
 
-      <Modal open={showClearConfirm} onClose={() => setShowClearConfirm(false)} title="Reset Demo Data?">
+      <Modal
+        open={showClearConfirm}
+        onClose={() => !clearing && setShowClearConfirm(false)}
+        title="Clear all data?"
+      >
         <p className="text-sm text-gray-600 mb-4">
-          This will delete all household transactions, budgets, goals, and settings, then reload with demo data. This cannot be undone.
+          This deletes all transactions, budgets, goals, recurring items, and accounts, then starts
+          fresh with default categories and an empty checking account. This cannot be undone.
         </p>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={() => setShowClearConfirm(false)} className="flex-1">
+          <Button
+            variant="outline"
+            onClick={() => setShowClearConfirm(false)}
+            className="flex-1"
+            disabled={clearing}
+          >
             Cancel
           </Button>
-          <Button variant="destructive" onClick={handleClear} className="flex-1">
-            Reset Data
+          <Button
+            variant="destructive"
+            onClick={handleClear}
+            className="flex-1"
+            disabled={clearing}
+          >
+            {clearing ? "Clearing…" : "Clear everything"}
           </Button>
         </div>
       </Modal>

@@ -69,6 +69,40 @@ async function clearHouseholdData(
   }
 }
 
+/** Blank household: default categories + empty checking account + settings. No demo transactions. */
+async function initializeBlankHousehold(
+  ctx: MutationCtx,
+  householdId: Id<"households">,
+  userId: Id<"users">,
+): Promise<void> {
+  await ctx.db.insert("accounts", {
+    householdId,
+    name: "Checking",
+    type: "checking",
+    balance: 0,
+    color: "#059669",
+    createdBy: userId,
+  });
+
+  for (const c of DEFAULT_CATEGORIES) {
+    await ctx.db.insert("categories", {
+      householdId,
+      ...c,
+      createdBy: userId,
+    });
+  }
+
+  await ctx.db.insert("settings", {
+    householdId,
+    displayName: "",
+    monthlyBudget: 3500,
+    currency: "USD",
+    onboardingComplete: false,
+    lastSynced: new Date().toISOString(),
+  });
+}
+
+/** Optional demo dataset for local exploration / screenshots. */
 async function seedHouseholdData(
   ctx: MutationCtx,
   householdId: Id<"households">,
@@ -270,7 +304,7 @@ async function seedHouseholdData(
 
 /**
  * Ensure the signed-in user belongs to a household.
- * - First user creates + seeds a household.
+ * - First user creates a blank household (categories + empty checking).
  * - Second allowlisted user auto-joins the existing household (max 2 members).
  */
 export const ensureHousehold = mutation({
@@ -314,12 +348,24 @@ export const ensureHousehold = mutation({
       role: "owner",
       joinedAt: Date.now(),
     });
-    await seedHouseholdData(ctx, householdId, userId);
+    await initializeBlankHousehold(ctx, householdId, userId);
     return householdId;
   },
 });
 
-/** Wipe household finance data and reseed demo data. */
+/** Wipe all finance data and restore a blank household (no demo transactions). */
+export const clearHousehold = mutation({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    const { userId, householdId } = await requireHouseholdId(ctx);
+    await clearHouseholdData(ctx, householdId);
+    await initializeBlankHousehold(ctx, householdId, userId);
+    return null;
+  },
+});
+
+/** Wipe household finance data and reseed demo data (dev / screenshots). */
 export const resetDemoData = mutation({
   args: {},
   returns: v.null(),
@@ -362,7 +408,7 @@ export const seedForUser = internalMutation({
       role: "owner",
       joinedAt: Date.now(),
     });
-    await seedHouseholdData(ctx, householdId, args.userId);
+    await initializeBlankHousehold(ctx, householdId, args.userId);
     return householdId;
   },
 });

@@ -101,7 +101,7 @@ export function useFinanceMutations() {
   const updateBudgetMut = useMutation(api.budgets.updateAmount);
   const upsertBudgetMut = useMutation(api.budgets.upsert);
   const updateSettingsMut = useMutation(api.settings.update);
-  const resetDemo = useMutation(api.seed.resetDemoData);
+  const clearHousehold = useMutation(api.seed.clearHousehold);
   const touch = useMutation(api.seed.touchLastSynced);
 
   return {
@@ -191,8 +191,8 @@ export function useFinanceMutations() {
         onboardingComplete: updates.onboardingComplete,
       });
     },
-    clearAndReseed: async () => {
-      await resetDemo({});
+    clearHousehold: async () => {
+      await clearHousehold({});
     },
     touchSync: async () => {
       await touch({});
