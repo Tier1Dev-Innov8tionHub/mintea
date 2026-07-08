@@ -86,3 +86,18 @@ export const update = mutation({
     return null;
   },
 });
+
+export const remove = mutation({
+  args: { id: v.id("recurring") },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const { householdId } = await requireHouseholdId(ctx);
+    const item = await ctx.db.get(args.id);
+    if (!item || item.householdId !== householdId) {
+      throw new Error("Recurring item not found");
+    }
+    await ctx.db.delete(args.id);
+    await touchSync(ctx, householdId);
+    return null;
+  },
+});

@@ -59,6 +59,8 @@ export default defineSchema({
     type: accountType,
     balance: v.number(),
     color: v.string(),
+    /** Last 4 digits of the account/card number (optional). */
+    last4: v.optional(v.string()),
     createdBy: v.optional(v.id("users")),
   }).index("by_household", ["householdId"]),
 

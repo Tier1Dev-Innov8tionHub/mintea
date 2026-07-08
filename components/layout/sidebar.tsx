@@ -12,11 +12,13 @@ import {
   Target,
   Settings,
   Leaf,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const SIDEBAR_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutGrid },
+  { href: "/accounts", label: "Accounts", icon: Building2 },
   { href: "/recurring", label: "Recurring", icon: CalendarClock },
   { href: "/spending", label: "Spending", icon: Wallet },
   { href: "/budgets", label: "Budgets", icon: PieChart },

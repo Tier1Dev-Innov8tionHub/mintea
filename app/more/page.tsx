@@ -10,9 +10,11 @@ import {
   Leaf,
   ChevronRight,
   HelpCircle,
+  Building2,
 } from "lucide-react";
 
 const MORE_ITEMS = [
+  { href: "/accounts", label: "Accounts", icon: Building2, description: "Bank and credit card balances" },
   { href: "/goals", label: "Savings Goals", icon: Target, description: "Track your financial goals" },
   { href: "/budgets", label: "Budgets", icon: PieChart, description: "Manage category budgets" },
   { href: "/settings", label: "Settings", icon: Settings, description: "App preferences" },

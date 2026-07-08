@@ -38,6 +38,7 @@ export const accountDoc = v.object({
   type: accountTypeValidator,
   balance: v.number(),
   color: v.string(),
+  last4: v.optional(v.string()),
 });
 
 export const categoryDoc = v.object({

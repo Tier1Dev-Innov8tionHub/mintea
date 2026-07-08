@@ -3,7 +3,7 @@
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import type { Goal, Recurring, Settings, Transaction } from "./schema";
+import type { Account, Goal, Recurring, Settings, Transaction } from "./schema";
 import { useEffect, useState } from "react";
 
 export function useDbInit() {
@@ -98,6 +98,10 @@ export function useFinanceMutations() {
   const depositGoal = useMutation(api.goals.deposit);
   const createRecurring = useMutation(api.recurring.create);
   const updateRecurringMut = useMutation(api.recurring.update);
+  const removeRecurringMut = useMutation(api.recurring.remove);
+  const createAccount = useMutation(api.accounts.create);
+  const updateAccountMut = useMutation(api.accounts.update);
+  const removeAccountMut = useMutation(api.accounts.remove);
   const updateBudgetMut = useMutation(api.budgets.updateAmount);
   const upsertBudgetMut = useMutation(api.budgets.upsert);
   const updateSettingsMut = useMutation(api.settings.update);
@@ -172,6 +176,40 @@ export function useFinanceMutations() {
         categoryId: data.categoryId as Id<"categories"> | undefined,
         active: data.active,
       });
+    },
+    deleteRecurring: async (id: string) => {
+      await removeRecurringMut({ id: id as Id<"recurring"> });
+    },
+    addAccount: async (data: Omit<Account, "id" | "color"> & { color?: string }) => {
+      await createAccount({
+        name: data.name,
+        type: data.type,
+        balance: data.balance,
+        color: data.color,
+        last4: data.last4,
+      });
+    },
+    updateAccount: async (
+      id: string,
+      data: {
+        name?: string;
+        type?: Account["type"];
+        balance?: number;
+        color?: string;
+        last4?: string | null;
+      },
+    ) => {
+      await updateAccountMut({
+        id: id as Id<"accounts">,
+        name: data.name,
+        type: data.type,
+        balance: data.balance,
+        color: data.color,
+        last4: data.last4,
+      });
+    },
+    deleteAccount: async (id: string) => {
+      await removeAccountMut({ id: id as Id<"accounts"> });
     },
     updateBudget: async (id: string, amount: number) => {
       await updateBudgetMut({ id: id as Id<"budgets">, amount });

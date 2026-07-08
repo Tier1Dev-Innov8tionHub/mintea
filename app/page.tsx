@@ -18,6 +18,8 @@ import {
 } from "@/lib/db/hooks";
 import {
   netCash,
+  totalBalances,
+  accountLabel,
   monthlySpend,
   dailySpendingChart,
 } from "@/lib/calculations";
@@ -34,6 +36,19 @@ import {
   TrendingDown,
 } from "lucide-react";
 import Link from "next/link";
+
+function accountTypeIcon(type: string) {
+  switch (type) {
+    case "credit":
+      return <CreditCard className="h-5 w-5 text-indigo-600" />;
+    case "savings":
+      return <PiggyBank className="h-5 w-5 text-teal-600" />;
+    case "cash":
+      return <Banknote className="h-5 w-5 text-amber-600" />;
+    default:
+      return <Building2 className="h-5 w-5 text-emerald-600" />;
+  }
+}
 
 export default function DashboardPage() {
   const accounts = useAccounts();
@@ -53,8 +68,13 @@ export default function DashboardPage() {
   const diff = budget - spend;
   const chartData = dailySpendingChart(transactions, now);
   const cash = netCash(accounts);
-  const checking = accounts.find((a) => a.type === "checking");
-  const savings = accounts.find((a) => a.type === "savings");
+  const total = totalBalances(accounts);
+  const sortedAccounts = [...accounts].sort((a, b) => {
+    const order = ["checking", "savings", "credit", "cash"] as const;
+    const byType = order.indexOf(a.type) - order.indexOf(b.type);
+    if (byType !== 0) return byType;
+    return a.name.localeCompare(b.name);
+  });
   const recent = transactions.slice(0, 5);
   const activeGoals = goals.filter((g) => g.status === "active");
 
@@ -113,43 +133,53 @@ export default function DashboardPage() {
         <div>
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs font-semibold text-gray-500 tracking-wider">ACCOUNTS</p>
-            <button
-              onClick={handleSync}
-              className="flex items-center gap-1 text-xs text-gray-400 hover:text-emerald-600"
-            >
-              <RefreshCw className={`h-3 w-3 ${syncing ? "animate-spin" : ""}`} />
-              Sync now
-            </button>
+            <div className="flex items-center gap-3">
+              <Link href="/accounts" className="text-xs text-emerald-600 font-medium">
+                Manage
+              </Link>
+              <button
+                onClick={handleSync}
+                className="flex items-center gap-1 text-xs text-gray-400 hover:text-emerald-600"
+              >
+                <RefreshCw className={`h-3 w-3 ${syncing ? "animate-spin" : ""}`} />
+                Sync
+              </button>
+            </div>
           </div>
           <Card>
             <CardContent className="p-4">
-              {checking && (
-                <AccountRow
-                  icon={<Building2 className="h-5 w-5 text-gray-600" />}
-                  label="Checking"
-                  amount={checking.balance}
-                  expandable
-                />
-              )}
-              <AccountRow
-                icon={<CreditCard className="h-5 w-5 text-gray-600" />}
-                label="Credit Cards"
-                amount={accounts.filter((a) => a.type === "credit").reduce((s, a) => s + a.balance, 0)}
-                expandable
-              />
-              <AccountRow
-                icon={<Banknote className="h-5 w-5 text-emerald-600" />}
-                label="Net Cash"
-                amount={cash}
-                color="#059669"
-              />
-              {savings && (
-                <AccountRow
-                  icon={<PiggyBank className="h-5 w-5 text-gray-600" />}
-                  label="Savings"
-                  amount={savings.balance}
-                  expandable
-                />
+              {sortedAccounts.length === 0 ? (
+                <div className="py-2 text-center">
+                  <p className="text-sm text-gray-500 mb-2">No accounts yet</p>
+                  <Link href="/accounts">
+                    <Button variant="outline" size="sm" className="gap-1">
+                      <Plus className="h-3.5 w-3.5" />
+                      Add account
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <>
+                  {sortedAccounts.map((account) => (
+                    <AccountRow
+                      key={account.id}
+                      icon={accountTypeIcon(account.type)}
+                      label={accountLabel(account)}
+                      amount={account.balance}
+                    />
+                  ))}
+                  <AccountRow
+                    icon={<Banknote className="h-5 w-5 text-gray-600" />}
+                    label="All balances"
+                    amount={total}
+                  />
+                  <AccountRow
+                    icon={<Banknote className="h-5 w-5 text-emerald-600" />}
+                    label="Net cash"
+                    amount={cash}
+                    color="#059669"
+                  />
+                </>
               )}
             </CardContent>
           </Card>

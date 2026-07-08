@@ -11,6 +11,15 @@ export function netCash(accounts: Account[]): number {
   return assets - liabilities;
 }
 
+/** Plain sum of every account balance (credit balances counted as-is, like a spreadsheet). */
+export function totalBalances(accounts: Account[]): number {
+  return accounts.reduce((sum, a) => sum + a.balance, 0);
+}
+
+export function accountLabel(account: Account): string {
+  return account.last4 ? `${account.name} •••• ${account.last4}` : account.name;
+}
+
 export function getTransactionsInMonth(
   transactions: Transaction[],
   month: Date

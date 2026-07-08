@@ -10,6 +10,7 @@ export interface Account {
   type: AccountType;
   balance: number;
   color: string;
+  last4?: string;
 }
 
 export interface Category {
