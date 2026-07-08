@@ -32,9 +32,11 @@ export function MobileShell({
 
   return (
     <div className={cn("flex min-h-screen flex-col bg-[#f3f4f6]", className)}>
-      <header className="mint-gradient px-4 pb-10 pt-safe text-white">
-        <div className="mx-auto flex max-w-[430px] items-center justify-between py-3 md:max-w-none">
-          <div className="flex w-16 items-center justify-start gap-3">
+      {/* Mobile: tall gradient + card overlap. Desktop: compact page title bar. */}
+      <header className="mint-gradient px-4 pt-safe text-white pb-8 md:pb-0">
+        <div className="mx-auto flex max-w-[430px] items-center justify-between py-3 md:max-w-none md:py-2.5">
+          {/* Back / settings: mobile only — desktop uses the sidebar */}
+          <div className="flex w-16 items-center justify-start gap-3 md:invisible md:pointer-events-none">
             {showBack ? (
               <button
                 onClick={() => router.back()}
@@ -56,47 +58,51 @@ export function MobileShell({
             )}
           </div>
           <div className="text-center">
-            <p className="text-[15px] font-semibold tracking-wide">
+            <p className="text-[15px] font-semibold tracking-wide md:text-base">
               {title ?? today}
             </p>
           </div>
           <div className="flex w-16 items-center justify-end gap-1.5">
             {headerExtra}
-            <Show when="signed-out">
-              <SignInButton mode="modal">
-                <button
-                  type="button"
-                  className="rounded-full bg-white/15 px-3 py-1 text-xs font-medium hover:bg-white/25"
-                >
-                  Sign in
-                </button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <button
-                  type="button"
-                  className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-emerald-800 hover:bg-emerald-50"
-                >
-                  Sign up
-                </button>
-              </SignUpButton>
-            </Show>
-            <Show when="signed-in">
-              <UserButton
-                appearance={{
-                  elements: {
-                    avatarBox: "h-7 w-7",
-                  },
-                }}
-              />
-            </Show>
+            {/* Account controls live in the sidebar on desktop */}
+            <div className="md:hidden">
+              <Show when="signed-out">
+                <SignInButton mode="modal">
+                  <button
+                    type="button"
+                    className="rounded-full bg-white/15 px-3 py-1 text-xs font-medium hover:bg-white/25"
+                  >
+                    Sign in
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button
+                    type="button"
+                    className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-emerald-800 hover:bg-emerald-50"
+                  >
+                    Sign up
+                  </button>
+                </SignUpButton>
+              </Show>
+              <Show when="signed-in">
+                <UserButton
+                  appearance={{
+                    elements: {
+                      avatarBox: "h-7 w-7",
+                    },
+                  }}
+                />
+              </Show>
+            </div>
           </div>
         </div>
       </header>
       <main className="relative z-10 flex-1 overflow-y-auto pb-24 md:pb-8">
         <div
           className={cn(
-            "mx-auto max-w-[430px] px-4 md:max-w-4xl",
-            overlap && "-mt-6",
+            "mx-auto max-w-[430px] px-4 md:max-w-4xl md:pt-6",
+            // Card tuck only on mobile; desktop needs clear space under the toolbar
+            overlap && "-mt-5 md:mt-0",
           )}
         >
           {children}
