@@ -7,33 +7,58 @@ import { Button } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/sheet";
 import { TransactionRow } from "@/components/dashboard/cards";
 import { CategoryIcon } from "@/components/icons/category-icon";
+import { AccountViewFilterChips } from "@/components/accounts/view-filter-chips";
 import { AddTransactionSheet } from "@/components/transactions/add-transaction-sheet";
 import { EditTransactionSheet } from "@/components/transactions/edit-transaction-sheet";
-import { useTransactions, useCategories } from "@/lib/db/hooks";
+import {
+  useAccounts,
+  useTransactions,
+  useCategories,
+  useViewer,
+} from "@/lib/db/hooks";
+import { filterTransactionsByAccountView } from "@/lib/account-view";
 import { formatShortDate } from "@/lib/format";
 import { format, parseISO } from "date-fns";
 import { Plus, Search, SlidersHorizontal } from "lucide-react";
-import type { Transaction, TransactionType } from "@/lib/db/schema";
+import type {
+  AccountViewFilter,
+  Transaction,
+  TransactionType,
+} from "@/lib/db/schema";
 
 type FilterType = "all" | TransactionType;
 type DateFilter = "this-month" | "last-month" | "all";
 
 export default function TransactionsPage() {
+  const accounts = useAccounts();
   const transactions = useTransactions();
   const categories = useCategories();
+  const viewer = useViewer();
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
   const [filterType, setFilterType] = useState<FilterType>("all");
   const [dateFilter, setDateFilter] = useState<DateFilter>("this-month");
+  const [viewFilter, setViewFilter] = useState<AccountViewFilter>("all");
+
+  const scopedTransactions = useMemo(
+    () =>
+      filterTransactionsByAccountView(
+        transactions,
+        accounts,
+        viewer?.userId,
+        viewFilter,
+      ),
+    [transactions, accounts, viewer?.userId, viewFilter],
+  );
 
   const filtered = useMemo(() => {
     const now = new Date();
     const thisMonth = now.getMonth();
     const thisYear = now.getFullYear();
 
-    return transactions.filter((tx) => {
+    return scopedTransactions.filter((tx) => {
       if (search && !tx.description.toLowerCase().includes(search.toLowerCase())) return false;
       if (filterType !== "all" && tx.type !== filterType) return false;
       if (dateFilter !== "all") {
@@ -48,7 +73,7 @@ export default function TransactionsPage() {
       }
       return true;
     });
-  }, [transactions, search, filterType, dateFilter]);
+  }, [scopedTransactions, search, filterType, dateFilter]);
 
   const grouped = useMemo(() => {
     const groups: Record<string, Transaction[]> = {};
@@ -65,6 +90,8 @@ export default function TransactionsPage() {
   return (
     <MobileShell title="Transactions">
       <div className="space-y-4">
+        <AccountViewFilterChips value={viewFilter} onChange={setViewFilter} />
+
         {/* Search bar */}
         <div className="flex gap-2">
           <div className="relative flex-1">
@@ -104,6 +131,8 @@ export default function TransactionsPage() {
                       date={formatShortDate(tx.date)}
                       amount={tx.amount}
                       type={tx.type}
+                      ignored={tx.isIgnored}
+                      pending={tx.isPending}
                       onClick={() => setEditTx(tx)}
                       icon={
                         cat ? (
@@ -125,6 +154,11 @@ export default function TransactionsPage() {
         {filtered.length === 0 && (
           <div className="text-center py-12 text-gray-400">
             <p>No transactions found</p>
+            {viewFilter !== "all" && (
+              <p className="mt-1 text-xs">
+                Your partner&apos;s private personal accounts aren&apos;t shown
+              </p>
+            )}
           </div>
         )}
 

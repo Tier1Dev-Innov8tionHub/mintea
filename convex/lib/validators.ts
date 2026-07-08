@@ -5,6 +5,18 @@ export const accountTypeValidator = v.union(
   v.literal("savings"),
   v.literal("credit"),
   v.literal("cash"),
+  v.literal("investment"),
+);
+
+export const accountPurposeValidator = v.union(
+  v.literal("personal"),
+  v.literal("joint"),
+  v.literal("business"),
+);
+
+export const accountVisibilityValidator = v.union(
+  v.literal("private"),
+  v.literal("shared"),
 );
 
 export const transactionTypeValidator = v.union(
@@ -39,6 +51,9 @@ export const accountDoc = v.object({
   balance: v.number(),
   color: v.string(),
   last4: v.optional(v.string()),
+  ownerId: v.id("users"),
+  purpose: accountPurposeValidator,
+  visibility: accountVisibilityValidator,
 });
 
 export const categoryDoc = v.object({
@@ -58,6 +73,8 @@ export const transactionDoc = v.object({
   description: v.string(),
   date: v.string(),
   isIgnored: v.boolean(),
+  notes: v.optional(v.string()),
+  isPending: v.optional(v.boolean()),
   recurringId: v.optional(v.id("recurring")),
 });
 
@@ -85,7 +102,16 @@ export const recurringDoc = v.object({
   frequency: recurringFrequencyValidator,
   nextDate: v.string(),
   categoryId: v.id("categories"),
+  accountId: v.optional(v.id("accounts")),
   active: v.boolean(),
+});
+
+export const balanceSnapshotDoc = v.object({
+  id: v.id("balanceSnapshots"),
+  date: v.string(),
+  netWorth: v.number(),
+  totalAssets: v.number(),
+  totalLiabilities: v.number(),
 });
 
 export const settingsDoc = v.object({

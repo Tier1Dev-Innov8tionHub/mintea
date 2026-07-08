@@ -55,7 +55,15 @@ export function CategoryIcon({ icon, color = "#059669", size = 20, className }: 
   );
 }
 
-export function GoalIcon({ icon, size = 20 }: { icon: string; size?: number }) {
+export function GoalIcon({
+  icon,
+  size = 20,
+  className = "text-emerald-600",
+}: {
+  icon: string;
+  size?: number;
+  className?: string;
+}) {
   const Icon = ICON_MAP[icon] ?? PiggyBank;
-  return <Icon size={size} className="text-emerald-600" />;
+  return <Icon size={size} className={className} />;
 }

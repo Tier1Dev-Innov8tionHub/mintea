@@ -1,4 +1,12 @@
-export type AccountType = "checking" | "savings" | "credit" | "cash";
+export type AccountType =
+  | "checking"
+  | "savings"
+  | "credit"
+  | "cash"
+  | "investment";
+export type AccountPurpose = "personal" | "joint" | "business";
+export type AccountVisibility = "private" | "shared";
+export type AccountViewFilter = "all" | "mine" | "shared";
 export type TransactionType = "income" | "expense" | "transfer";
 export type CategoryGroup = "spending" | "income" | "bills" | "savings";
 export type GoalStatus = "active" | "paused";
@@ -11,6 +19,9 @@ export interface Account {
   balance: number;
   color: string;
   last4?: string;
+  ownerId: string;
+  purpose: AccountPurpose;
+  visibility: AccountVisibility;
 }
 
 export interface Category {
@@ -30,6 +41,8 @@ export interface Transaction {
   description: string;
   date: string;
   isIgnored: boolean;
+  notes?: string;
+  isPending?: boolean;
   recurringId?: string;
 }
 
@@ -57,7 +70,16 @@ export interface Recurring {
   frequency: RecurringFrequency;
   nextDate: string;
   categoryId: string;
+  accountId?: string;
   active: boolean;
+}
+
+export interface BalanceSnapshot {
+  id: string;
+  date: string;
+  netWorth: number;
+  totalAssets: number;
+  totalLiabilities: number;
 }
 
 export interface Settings {

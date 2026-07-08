@@ -82,8 +82,8 @@ export default function OnboardingPage() {
           </h1>
           <p className="text-gray-500 mb-8">
             {displayName
-              ? "Set a monthly budget to get started."
-              : "Let\u2019s personalize your experience."}
+              ? "Set a monthly budget to get started. Personal accounts stay private unless you share them."
+              : "Shared workspace with private personal accounts when you need them."}
           </p>
           <div className="space-y-4">
             <Input
@@ -109,21 +109,23 @@ export default function OnboardingPage() {
   }));
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
-      <div className="flex-1 flex items-center justify-center px-6 pt-12">
+    <div className="flex min-h-screen flex-col bg-[#f3f4f6]">
+      <div className="flex flex-1 items-center justify-center px-6 pt-12">
         <div className="w-full max-w-xs">
           {slide === 0 && (
-            <div className="rounded-3xl bg-white shadow-xl overflow-hidden border border-gray-100">
-              <div className="bg-gradient-to-r from-emerald-700 to-teal-500 px-4 py-3">
+            <div className="overflow-hidden rounded-3xl border border-white/80 bg-white shadow-[0_4px_24px_rgba(15,23,42,0.08)]">
+              <div className="mint-gradient px-4 py-3">
                 <div className="flex items-center gap-2">
                   <Leaf className="h-4 w-4 text-white" />
-                  <span className="text-white text-sm font-semibold">mintea</span>
+                  <span className="text-sm font-semibold text-white">mintea</span>
                 </div>
               </div>
               <div className="p-4">
                 <p className="text-xs text-gray-500">Current spend this month</p>
-                <p className="text-2xl font-bold">{formatCurrency(2942)}</p>
-                <p className="text-xs text-emerald-600 mt-1">$143 below budget</p>
+                <p className="text-2xl font-bold tracking-tight">
+                  {formatCurrency(2942)}
+                </p>
+                <p className="mt-1 text-xs text-emerald-600">$143 below budget</p>
                 <div className="mt-2">
                   <SpendingChart data={mockChartData} budget={3500} height={80} />
                 </div>
@@ -132,17 +134,19 @@ export default function OnboardingPage() {
           )}
           {slide === 1 && (
             <div className="space-y-2">
-              <div className="rounded-2xl bg-emerald-600 p-4 text-white">
+              <div className="mint-gradient rounded-3xl p-5 text-white">
                 <p className="text-xs opacity-80">Savings</p>
                 <p className="text-3xl font-bold">{formatCurrency(11714)}</p>
               </div>
-              <div className="rounded-2xl bg-white p-3 flex justify-between shadow-sm">
+              <div className="flex justify-between rounded-3xl bg-white p-4 shadow-[0_4px_24px_rgba(15,23,42,0.06)]">
                 <span className="text-sm">Savings</span>
                 <span className="font-semibold">{formatCurrency(12648)}</span>
               </div>
-              <div className="rounded-2xl bg-white p-3 flex justify-between shadow-sm">
+              <div className="flex justify-between rounded-3xl bg-white p-4 shadow-[0_4px_24px_rgba(15,23,42,0.06)]">
                 <span className="text-sm">Card balance</span>
-                <span className="font-semibold text-red-500">-{formatCurrency(934)}</span>
+                <span className="font-semibold text-red-500">
+                  -{formatCurrency(934)}
+                </span>
               </div>
             </div>
           )}

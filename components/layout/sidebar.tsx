@@ -13,12 +13,14 @@ import {
   Settings,
   Leaf,
   Building2,
+  TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const SIDEBAR_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutGrid },
   { href: "/accounts", label: "Accounts", icon: Building2 },
+  { href: "/net-worth", label: "Net Worth", icon: TrendingUp },
   { href: "/recurring", label: "Recurring", icon: CalendarClock },
   { href: "/spending", label: "Spending", icon: Wallet },
   { href: "/budgets", label: "Budgets", icon: PieChart },
@@ -31,12 +33,14 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:flex md:w-64 md:flex-col md:border-r md:border-gray-200 md:bg-white md:min-h-screen">
-      <div className="flex items-center gap-2 px-6 py-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-600">
+    <aside className="hidden min-h-screen md:flex md:w-64 md:flex-col md:border-r md:border-gray-200 md:bg-white">
+      <div className="flex items-center gap-2.5 px-6 py-6">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-700 to-teal-500">
           <Leaf className="h-5 w-5 text-white" />
         </div>
-        <span className="text-xl font-bold text-emerald-700">mintea</span>
+        <span className="text-xl font-bold tracking-tight text-emerald-800">
+          mintea
+        </span>
       </div>
       <nav className="flex-1 space-y-1 px-3">
         {SIDEBAR_ITEMS.map(({ href, label, icon: Icon }) => {
@@ -83,8 +87,8 @@ export function Sidebar() {
           <div className="flex items-center gap-3">
             <UserButton />
             <div>
-              <p className="text-xs text-gray-400">Personal finance tracker</p>
-              <p className="text-xs text-gray-400">Synced via Convex</p>
+              <p className="text-xs text-gray-400">Household finance tracker</p>
+              <p className="text-xs text-gray-400">Manual balances</p>
             </div>
           </div>
         </Show>

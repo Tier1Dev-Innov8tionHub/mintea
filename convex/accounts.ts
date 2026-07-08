@@ -1,11 +1,22 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import {
+  assertCanEditAccount,
+  listVisibleAccounts,
+  normalizeAccount,
+  resolvePurposeAndVisibility,
+} from "./lib/accountAccess";
+import {
   requireHouseholdId,
   requireHouseholdIdForQuery,
   touchSync,
 } from "./lib/household";
-import { accountDoc, accountTypeValidator } from "./lib/validators";
+import {
+  accountDoc,
+  accountPurposeValidator,
+  accountTypeValidator,
+  accountVisibilityValidator,
+} from "./lib/validators";
 
 const ACCOUNT_COLORS = [
   "#059669",
@@ -28,11 +39,8 @@ export const list = query({
   args: {},
   returns: v.array(accountDoc),
   handler: async (ctx) => {
-    const { householdId } = await requireHouseholdIdForQuery(ctx);
-    const rows = await ctx.db
-      .query("accounts")
-      .withIndex("by_household", (q) => q.eq("householdId", householdId))
-      .collect();
+    const { userId, householdId } = await requireHouseholdIdForQuery(ctx);
+    const rows = await listVisibleAccounts(ctx, householdId, userId);
     return rows.map((a) => ({
       id: a._id,
       name: a.name,
@@ -40,6 +48,9 @@ export const list = query({
       balance: a.balance,
       color: a.color,
       last4: a.last4 && a.last4.length === 4 ? a.last4 : undefined,
+      ownerId: a.ownerId,
+      purpose: a.purpose,
+      visibility: a.visibility,
     }));
   },
 });
@@ -51,12 +62,19 @@ export const create = mutation({
     balance: v.number(),
     color: v.optional(v.string()),
     last4: v.optional(v.string()),
+    purpose: accountPurposeValidator,
+    visibility: v.optional(accountVisibilityValidator),
   },
   returns: v.id("accounts"),
   handler: async (ctx, args) => {
     const { userId, householdId } = await requireHouseholdId(ctx);
     const name = args.name.trim();
     if (!name) throw new Error("Account name is required");
+
+    const { purpose, visibility } = resolvePurposeAndVisibility({
+      purpose: args.purpose,
+      visibility: args.visibility,
+    });
 
     const existing = await ctx.db
       .query("accounts")
@@ -72,6 +90,9 @@ export const create = mutation({
       balance: args.balance,
       color,
       last4: normalizeLast4(args.last4),
+      ownerId: userId,
+      purpose,
+      visibility,
       createdBy: userId,
     });
     await touchSync(ctx, householdId);
@@ -87,13 +108,41 @@ export const update = mutation({
     balance: v.optional(v.number()),
     color: v.optional(v.string()),
     last4: v.optional(v.union(v.string(), v.null())),
+    purpose: v.optional(accountPurposeValidator),
+    visibility: v.optional(accountVisibilityValidator),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const { householdId } = await requireHouseholdId(ctx);
+    const { userId, householdId } = await requireHouseholdId(ctx);
     const account = await ctx.db.get(args.id);
     if (!account || account.householdId !== householdId) {
       throw new Error("Account not found");
+    }
+
+    const normalized = normalizeAccount(account, userId);
+    assertCanEditAccount(userId, normalized);
+
+    const changingSharing =
+      args.purpose !== undefined || args.visibility !== undefined;
+    if (changingSharing && normalized.ownerId !== userId) {
+      throw new Error("Only the account owner can change sharing settings");
+    }
+
+    const nextPurpose = args.purpose ?? normalized.purpose;
+    let nextVisibility = normalized.visibility;
+    if (changingSharing) {
+      if (nextPurpose !== "personal" && args.visibility === "private") {
+        throw new Error("Joint and business accounts must be shared");
+      }
+      const resolved = resolvePurposeAndVisibility({
+        purpose: nextPurpose,
+        visibility:
+          nextPurpose === "personal"
+            ? (args.visibility ??
+              (args.purpose !== undefined ? "private" : normalized.visibility))
+            : undefined,
+      });
+      nextVisibility = resolved.visibility;
     }
 
     const patch: Record<string, string | number | undefined> = {};
@@ -107,9 +156,15 @@ export const update = mutation({
     if (args.balance !== undefined) patch.balance = args.balance;
     if (args.color !== undefined) patch.color = args.color;
     if (args.last4 !== undefined) {
-      // Empty string clears the optional field for display purposes.
       patch.last4 =
         args.last4 === null ? "" : (normalizeLast4(args.last4) ?? "");
+    }
+    if (changingSharing) {
+      patch.purpose = nextPurpose;
+      patch.visibility = nextVisibility;
+    }
+    if (!account.ownerId) {
+      patch.ownerId = normalized.ownerId;
     }
 
     await ctx.db.patch(args.id, patch);
@@ -122,11 +177,14 @@ export const remove = mutation({
   args: { id: v.id("accounts") },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const { householdId } = await requireHouseholdId(ctx);
+    const { userId, householdId } = await requireHouseholdId(ctx);
     const account = await ctx.db.get(args.id);
     if (!account || account.householdId !== householdId) {
       throw new Error("Account not found");
     }
+
+    const normalized = normalizeAccount(account, userId);
+    assertCanEditAccount(userId, normalized);
 
     const linked = await ctx.db
       .query("transactions")

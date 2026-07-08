@@ -160,3 +160,56 @@ export function SimpleBarChart({ data, budget }: { data: { month: string; spent:
     </div>
   );
 }
+
+export function NetWorthChart({
+  data,
+  height = 160,
+}: {
+  data: { date: string; netWorth: number }[];
+  height?: number;
+}) {
+  if (data.length === 0) {
+    return (
+      <div
+        className="flex items-center justify-center text-sm text-gray-400"
+        style={{ height }}
+      >
+        Capture a snapshot to start tracking history
+      </div>
+    );
+  }
+
+  const values = data.map((d) => d.netWorth);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const pad = Math.max(100, (max - min) * 0.1);
+
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <AreaChart data={data} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+        <defs>
+          <linearGradient id="netWorthGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#059669" stopOpacity={0.35} />
+            <stop offset="95%" stopColor="#059669" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <XAxis
+          dataKey="date"
+          tick={{ fontSize: 10, fill: "#9CA3AF" }}
+          tickFormatter={(v: string) => v.slice(5)}
+          axisLine={false}
+          tickLine={false}
+        />
+        <YAxis hide domain={[min - pad, max + pad]} />
+        <Area
+          type="monotone"
+          dataKey="netWorth"
+          stroke="#059669"
+          strokeWidth={2}
+          fill="url(#netWorthGradient)"
+          dot={data.length < 12}
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}

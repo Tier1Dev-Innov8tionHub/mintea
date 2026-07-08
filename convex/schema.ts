@@ -6,6 +6,18 @@ const accountType = v.union(
   v.literal("savings"),
   v.literal("credit"),
   v.literal("cash"),
+  v.literal("investment"),
+);
+
+const accountPurpose = v.union(
+  v.literal("personal"),
+  v.literal("joint"),
+  v.literal("business"),
+);
+
+const accountVisibility = v.union(
+  v.literal("private"),
+  v.literal("shared"),
 );
 
 const transactionType = v.union(
@@ -61,8 +73,17 @@ export default defineSchema({
     color: v.string(),
     /** Last 4 digits of the account/card number (optional). */
     last4: v.optional(v.string()),
+    /** Member who owns/manages this account. */
+    ownerId: v.optional(v.id("users")),
+    /** personal | joint | business — drives default visibility. */
+    purpose: v.optional(accountPurpose),
+    /** private = owner only; shared = both household members. */
+    visibility: v.optional(accountVisibility),
     createdBy: v.optional(v.id("users")),
-  }).index("by_household", ["householdId"]),
+  })
+    .index("by_household", ["householdId"])
+    .index("by_household_and_owner", ["householdId", "ownerId"])
+    .index("by_household_and_visibility", ["householdId", "visibility"]),
 
   categories: defineTable({
     householdId: v.id("households"),
@@ -84,6 +105,10 @@ export default defineSchema({
     description: v.string(),
     date: v.string(),
     isIgnored: v.boolean(),
+    /** Optional freeform notes (Rocket Money–style detail). */
+    notes: v.optional(v.string()),
+    /** Manual pending flag — not bank-synced. */
+    isPending: v.optional(v.boolean()),
     recurringId: v.optional(v.id("recurring")),
     createdBy: v.optional(v.id("users")),
   })
@@ -123,11 +148,25 @@ export default defineSchema({
     frequency: recurringFrequency,
     nextDate: v.string(),
     categoryId: v.id("categories"),
+    /** Optional payment account for this bill. */
+    accountId: v.optional(v.id("accounts")),
     active: v.boolean(),
     createdBy: v.optional(v.id("users")),
   })
     .index("by_household", ["householdId"])
     .index("by_household_and_active", ["householdId", "active"]),
+
+  /** Point-in-time net worth / balance snapshots for history charts. */
+  balanceSnapshots: defineTable({
+    householdId: v.id("households"),
+    date: v.string(),
+    netWorth: v.number(),
+    totalAssets: v.number(),
+    totalLiabilities: v.number(),
+    createdBy: v.optional(v.id("users")),
+  })
+    .index("by_household", ["householdId"])
+    .index("by_household_and_date", ["householdId", "date"]),
 
   settings: defineTable({
     householdId: v.id("households"),

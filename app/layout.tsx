@@ -12,17 +12,25 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "mintea — Personal Finance",
-  description: "Track savings, spending, and earnings. Your personal finance companion.",
+  title: "mintea — Household Finance",
+  description:
+    "Shared workspace with private personal accounts. Track spending, budgets, and savings together.",
   manifest: "/manifest.json",
+  applicationName: "mintea",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "mintea",
   },
   icons: {
-    icon: "/icons/icon-192.png",
-    apple: "/icons/icon-192.png",
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
   },
 };
 
@@ -31,7 +39,11 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#059669",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#065f46" },
+    { media: "(prefers-color-scheme: dark)", color: "#065f46" },
+  ],
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -41,7 +53,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} h-full`}>
-      <body className="min-h-full bg-gray-50 font-sans antialiased">
+      <body className="min-h-full bg-[#f3f4f6] font-sans antialiased">
         <ClerkProvider>
           <ConvexClientProvider>
             <AppProvider>

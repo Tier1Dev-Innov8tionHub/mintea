@@ -9,13 +9,17 @@
  */
 
 import type * as accounts from "../accounts.js";
+import type * as balanceSnapshots from "../balanceSnapshots.js";
 import type * as budgets from "../budgets.js";
 import type * as categories from "../categories.js";
 import type * as goals from "../goals.js";
 import type * as http from "../http.js";
+import type * as lib_accountAccess from "../lib/accountAccess.js";
 import type * as lib_allowlist from "../lib/allowlist.js";
 import type * as lib_household from "../lib/household.js";
+import type * as lib_recurringDates from "../lib/recurringDates.js";
 import type * as lib_validators from "../lib/validators.js";
+import type * as migrations from "../migrations.js";
 import type * as recurring from "../recurring.js";
 import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
@@ -30,13 +34,17 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   accounts: typeof accounts;
+  balanceSnapshots: typeof balanceSnapshots;
   budgets: typeof budgets;
   categories: typeof categories;
   goals: typeof goals;
   http: typeof http;
+  "lib/accountAccess": typeof lib_accountAccess;
   "lib/allowlist": typeof lib_allowlist;
   "lib/household": typeof lib_household;
+  "lib/recurringDates": typeof lib_recurringDates;
   "lib/validators": typeof lib_validators;
+  migrations: typeof migrations;
   recurring: typeof recurring;
   seed: typeof seed;
   settings: typeof settings;

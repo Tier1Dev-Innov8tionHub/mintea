@@ -73,9 +73,10 @@ function SettingsForm({ settings }: { settings: Settings }) {
               <Smartphone className="h-5 w-5 text-emerald-600 mt-0.5" />
               <div>
                 <p className="font-semibold">Install as App</p>
-                <p className="text-sm text-gray-500 mt-1">
-                  On iPhone: tap Share → Add to Home Screen. On Android: tap the menu → Install app.
-                  Data syncs to the cloud when you&apos;re online.
+                <p className="mt-1 text-sm text-gray-500">
+                  On iPhone: Share → Add to Home Screen. On Android: menu → Install
+                  app. You&apos;ll get the mint splash and home-screen icon. Data
+                  syncs to the cloud when you&apos;re online.
                 </p>
               </div>
             </div>
@@ -89,8 +90,9 @@ function SettingsForm({ settings }: { settings: Settings }) {
               <p className="font-semibold">About mintea</p>
             </div>
             <p className="text-sm text-gray-500">
-              mintea is a shared household finance tracker. Your data syncs via Convex so both of you
-              can use it on any device.
+              mintea is a shared workspace with private personal accounts when you
+              need them. Joint and business accounts stay visible to both of you.
+              Data syncs via Convex on any device.
             </p>
             <p className="text-xs text-gray-400 mt-2">Version 0.1.0</p>
           </CardContent>

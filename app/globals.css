@@ -1,10 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f9fafb;
+  --background: #f3f4f6;
   --foreground: #111827;
   --mint-primary: #059669;
+  --mint-dark: #065f46;
+  --mint-mid: #0d9488;
   --mint-light: #d1fae5;
+  --card-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+  --header-gradient: linear-gradient(160deg, #065f46 0%, #059669 48%, #14b8a6 100%);
 }
 
 @theme inline {
@@ -31,11 +35,35 @@ body {
   padding-top: env(safe-area-inset-top, 0px);
 }
 
+/* Brand surfaces */
+.mint-gradient {
+  background: var(--header-gradient);
+}
+
+.mint-splash {
+  background: linear-gradient(180deg, #064e3b 0%, #059669 55%, #f43f5e 100%);
+}
+
+.card-elevated {
+  box-shadow: var(--card-shadow);
+}
+
 @keyframes slide-in-from-bottom {
   from {
     transform: translateY(100%);
   }
   to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
     transform: translateY(0);
   }
 }
@@ -46,4 +74,8 @@ body {
 
 .slide-in-from-bottom {
   animation-name: slide-in-from-bottom;
+}
+
+.animate-fade-up {
+  animation: fade-up 0.45s ease-out both;
 }

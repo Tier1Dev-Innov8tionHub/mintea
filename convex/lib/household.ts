@@ -12,6 +12,12 @@ export async function getCurrentUser(ctx: Ctx): Promise<Doc<"users"> | null> {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) return null;
 
+  // Re-check on every request so removing someone from AUTH_ALLOWED_EMAILS
+  // immediately blocks reads, not only new sign-ups.
+  if (!isEmailAllowed(identity.email)) {
+    return null;
+  }
+
   return await ctx.db
     .query("users")
     .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.subject))

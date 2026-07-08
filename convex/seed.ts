@@ -81,6 +81,9 @@ async function initializeBlankHousehold(
     type: "checking",
     balance: 0,
     color: "#059669",
+    ownerId: userId,
+    purpose: "joint",
+    visibility: "shared",
     createdBy: userId,
   });
 
@@ -114,6 +117,9 @@ async function seedHouseholdData(
     type: "checking",
     balance: 5848,
     color: "#059669",
+    ownerId: userId,
+    purpose: "joint",
+    visibility: "shared",
     createdBy: userId,
   });
   await ctx.db.insert("accounts", {
@@ -122,6 +128,9 @@ async function seedHouseholdData(
     type: "savings",
     balance: 11714,
     color: "#0D9488",
+    ownerId: userId,
+    purpose: "joint",
+    visibility: "shared",
     createdBy: userId,
   });
   await ctx.db.insert("accounts", {
@@ -130,6 +139,9 @@ async function seedHouseholdData(
     type: "credit",
     balance: 934,
     color: "#6366F1",
+    ownerId: userId,
+    purpose: "joint",
+    visibility: "shared",
     createdBy: userId,
   });
 
@@ -321,21 +333,40 @@ export const ensureHousehold = mutation({
     }
 
     // Prefer joining an existing household that still has a free seat.
-    const households = await ctx.db.query("households").collect();
+    // Sort by createdAt so join order is deterministic if multiple exist.
+    const households = (await ctx.db.query("households").collect()).sort(
+      (a, b) => a.createdAt - b.createdAt,
+    );
+
+    let openSeat: (typeof households)[number] | null = null;
+    let anyHousehold = false;
     for (const household of households) {
+      anyHousehold = true;
       const members = await ctx.db
         .query("householdMembers")
         .withIndex("by_household", (q) => q.eq("householdId", household._id))
         .collect();
       if (members.length < 2) {
-        await ctx.db.insert("householdMembers", {
-          householdId: household._id,
-          userId,
-          role: "member",
-          joinedAt: Date.now(),
-        });
-        return household._id;
+        openSeat = household;
+        break;
       }
+    }
+
+    if (openSeat) {
+      await ctx.db.insert("householdMembers", {
+        householdId: openSeat._id,
+        userId,
+        role: "member",
+        joinedAt: Date.now(),
+      });
+      return openSeat._id;
+    }
+
+    // Household already has 2 members — do not silently create a second one.
+    if (anyHousehold) {
+      throw new Error(
+        "This household already has two members. Ask an existing member to remove someone before joining.",
+      );
     }
 
     const householdId = await ctx.db.insert("households", {
@@ -365,8 +396,8 @@ export const clearHousehold = mutation({
   },
 });
 
-/** Wipe household finance data and reseed demo data (dev / screenshots). */
-export const resetDemoData = mutation({
+/** Wipe household finance data and reseed demo data (dev / screenshots only). */
+export const resetDemoData = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {

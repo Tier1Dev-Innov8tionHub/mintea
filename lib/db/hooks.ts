@@ -3,7 +3,14 @@
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import type { Account, Goal, Recurring, Settings, Transaction } from "./schema";
+import type {
+  Account,
+  BalanceSnapshot,
+  Goal,
+  Recurring,
+  Settings,
+  Transaction,
+} from "./schema";
 import { useEffect, useState } from "react";
 
 export function useDbInit() {
@@ -50,6 +57,11 @@ export function useDbInit() {
   };
 }
 
+export function useViewer() {
+  const { isAuthenticated } = useConvexAuth();
+  return useQuery(api.users.viewer, isAuthenticated ? {} : "skip");
+}
+
 export function useAccounts() {
   const { isAuthenticated } = useConvexAuth();
   return useQuery(api.accounts.list, isAuthenticated ? {} : "skip") ?? [];
@@ -80,6 +92,14 @@ export function useRecurring() {
   return useQuery(api.recurring.list, isAuthenticated ? {} : "skip") ?? [];
 }
 
+export function useBalanceSnapshots() {
+  const { isAuthenticated } = useConvexAuth();
+  return (
+    useQuery(api.balanceSnapshots.list, isAuthenticated ? {} : "skip") ??
+    ([] as BalanceSnapshot[])
+  );
+}
+
 export function useSettings() {
   const { isAuthenticated } = useConvexAuth();
   const settings = useQuery(api.settings.get, isAuthenticated ? {} : "skip");
@@ -99,6 +119,8 @@ export function useFinanceMutations() {
   const createRecurring = useMutation(api.recurring.create);
   const updateRecurringMut = useMutation(api.recurring.update);
   const removeRecurringMut = useMutation(api.recurring.remove);
+  const advanceOverdueMut = useMutation(api.recurring.advanceOverdue);
+  const markPaidMut = useMutation(api.recurring.markPaid);
   const createAccount = useMutation(api.accounts.create);
   const updateAccountMut = useMutation(api.accounts.update);
   const removeAccountMut = useMutation(api.accounts.remove);
@@ -107,6 +129,7 @@ export function useFinanceMutations() {
   const updateSettingsMut = useMutation(api.settings.update);
   const clearHousehold = useMutation(api.seed.clearHousehold);
   const touch = useMutation(api.seed.touchLastSynced);
+  const captureSnapshot = useMutation(api.balanceSnapshots.capture);
 
   return {
     addTransaction: async (data: Omit<Transaction, "id">) => {
@@ -118,10 +141,25 @@ export function useFinanceMutations() {
         description: data.description,
         date: data.date,
         isIgnored: data.isIgnored,
+        notes: data.notes,
+        isPending: data.isPending,
         recurringId: data.recurringId as Id<"recurring"> | undefined,
       });
     },
-    updateTransaction: async (id: string, data: Partial<Transaction>) => {
+    updateTransaction: async (
+      id: string,
+      data: {
+        accountId?: string;
+        type?: Transaction["type"];
+        amount?: number;
+        categoryId?: string | null;
+        description?: string;
+        date?: string;
+        isIgnored?: boolean;
+        notes?: string | null;
+        isPending?: boolean;
+      },
+    ) => {
       await updateTransactionMut({
         id: id as Id<"transactions">,
         accountId: data.accountId as Id<"accounts"> | undefined,
@@ -134,6 +172,8 @@ export function useFinanceMutations() {
         description: data.description,
         date: data.date,
         isIgnored: data.isIgnored,
+        notes: data.notes,
+        isPending: data.isPending,
       });
     },
     deleteTransaction: async (id: string) => {
@@ -163,10 +203,22 @@ export function useFinanceMutations() {
         frequency: data.frequency,
         nextDate: data.nextDate,
         categoryId: data.categoryId as Id<"categories">,
+        accountId: data.accountId as Id<"accounts"> | undefined,
         active: data.active,
       });
     },
-    updateRecurring: async (id: string, data: Partial<Recurring>) => {
+    updateRecurring: async (
+      id: string,
+      data: {
+        name?: string;
+        amount?: number;
+        frequency?: Recurring["frequency"];
+        nextDate?: string;
+        categoryId?: string;
+        accountId?: string | null;
+        active?: boolean;
+      },
+    ) => {
       await updateRecurringMut({
         id: id as Id<"recurring">,
         name: data.name,
@@ -174,19 +226,38 @@ export function useFinanceMutations() {
         frequency: data.frequency,
         nextDate: data.nextDate,
         categoryId: data.categoryId as Id<"categories"> | undefined,
+        accountId:
+          data.accountId === undefined
+            ? undefined
+            : data.accountId === null
+              ? null
+              : (data.accountId as Id<"accounts">),
         active: data.active,
       });
+    },
+    captureBalanceSnapshot: async () => {
+      await captureSnapshot({});
     },
     deleteRecurring: async (id: string) => {
       await removeRecurringMut({ id: id as Id<"recurring"> });
     },
-    addAccount: async (data: Omit<Account, "id" | "color"> & { color?: string }) => {
+    advanceOverdueRecurring: async () => {
+      return await advanceOverdueMut({});
+    },
+    markRecurringPaid: async (id: string) => {
+      return await markPaidMut({ id: id as Id<"recurring"> });
+    },
+    addAccount: async (
+      data: Omit<Account, "id" | "color" | "ownerId"> & { color?: string },
+    ) => {
       await createAccount({
         name: data.name,
         type: data.type,
         balance: data.balance,
         color: data.color,
         last4: data.last4,
+        purpose: data.purpose,
+        visibility: data.visibility,
       });
     },
     updateAccount: async (
@@ -197,6 +268,8 @@ export function useFinanceMutations() {
         balance?: number;
         color?: string;
         last4?: string | null;
+        purpose?: Account["purpose"];
+        visibility?: Account["visibility"];
       },
     ) => {
       await updateAccountMut({
@@ -206,6 +279,8 @@ export function useFinanceMutations() {
         balance: data.balance,
         color: data.color,
         last4: data.last4,
+        purpose: data.purpose,
+        visibility: data.visibility,
       });
     },
     deleteAccount: async (id: string) => {

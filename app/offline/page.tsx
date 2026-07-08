@@ -1,10 +1,12 @@
+import { BrandMark } from "@/components/brand/brand-mark";
+
 export default function OfflinePage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-6 text-center">
-      <div>
-        <h1 className="text-2xl font-bold text-emerald-700 mb-2">mintea</h1>
-        <p className="text-gray-600">
-          You&apos;re offline. Reconnect to sync your shared household finances.
+    <div className="mint-gradient flex min-h-screen items-center justify-center p-6 text-center">
+      <div className="animate-fade-up">
+        <BrandMark size="lg" stacked className="mb-6 justify-center" />
+        <p className="max-w-xs text-sm text-white/85">
+          You&apos;re offline. Reconnect to sync your shared workspace.
         </p>
       </div>
     </div>

@@ -45,6 +45,7 @@ Convex deployment env (set via `npx convex env set`; use `--prod` for production
 ## Auth model
 
 - Shared **household** workspace (max 2 members); second allowlisted user auto-joins.
+- Accounts: **personal** (private by default, optionally shared), **joint**, and **business** (always shared).
 - Clerk + Convex JWT template named `convex`.
 - Records may include `createdBy` for attribution.
 

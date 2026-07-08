@@ -3,12 +3,69 @@ import type { Account, Budget, Category, Goal, Recurring, Transaction } from "..
 
 export function netCash(accounts: Account[]): number {
   const assets = accounts
-    .filter((a) => a.type === "checking" || a.type === "cash" || a.type === "savings")
+    .filter(
+      (a) =>
+        a.type === "checking" ||
+        a.type === "cash" ||
+        a.type === "savings" ||
+        a.type === "investment",
+    )
     .reduce((sum, a) => sum + a.balance, 0);
   const liabilities = accounts
     .filter((a) => a.type === "credit")
     .reduce((sum, a) => sum + a.balance, 0);
   return assets - liabilities;
+}
+
+export function netWorthBreakdown(accounts: Account[]): {
+  assets: number;
+  liabilities: number;
+  netWorth: number;
+  byType: Array<{ type: Account["type"]; label: string; total: number }>;
+} {
+  const assets = accounts
+    .filter((a) => a.type !== "credit")
+    .reduce((sum, a) => sum + a.balance, 0);
+  const liabilities = accounts
+    .filter((a) => a.type === "credit")
+    .reduce((sum, a) => sum + a.balance, 0);
+
+  const labels: Record<Account["type"], string> = {
+    checking: "Checking",
+    cash: "Cash",
+    savings: "Savings",
+    credit: "Credit",
+    investment: "Investments",
+  };
+  const types: Account["type"][] = [
+    "checking",
+    "cash",
+    "savings",
+    "investment",
+    "credit",
+  ];
+  const byType = types
+    .map((type) => ({
+      type,
+      label: labels[type],
+      total: accounts
+        .filter((a) => a.type === type)
+        .reduce((sum, a) => sum + a.balance, 0),
+    }))
+    .filter((row) => row.total !== 0 || accounts.some((a) => a.type === row.type));
+
+  return { assets, liabilities, netWorth: assets - liabilities, byType };
+}
+
+/** Normalize recurring amounts to a monthly equivalent. */
+export function monthlyRecurringTotal(recurring: Recurring[]): number {
+  return recurring
+    .filter((r) => r.active)
+    .reduce((sum, r) => {
+      if (r.frequency === "weekly") return sum + r.amount * (52 / 12);
+      if (r.frequency === "yearly") return sum + r.amount / 12;
+      return sum + r.amount;
+    }, 0);
 }
 
 /** Plain sum of every account balance (credit balances counted as-is, like a spreadsheet). */
@@ -90,17 +147,31 @@ export function budgetStatus(
   const monthBudgets = budgets.filter((b) => b.month === monthKey);
   const spending = spendingByCategory(transactions, categories, month);
   const spentMap = new Map(spending.map((s) => [s.category.id, s.spent]));
+  const budgetMap = new Map(monthBudgets.map((b) => [b.categoryId, b.amount]));
 
-  return monthBudgets.map((b) => {
-    const category = categories.find((c) => c.id === b.categoryId)!;
-    const spent = spentMap.get(b.categoryId) ?? 0;
-    return {
-      category,
-      budgeted: b.amount,
-      spent,
-      remaining: b.amount - spent,
-    };
-  });
+  const categoryIds = new Set<string>([
+    ...monthBudgets.map((b) => b.categoryId),
+    ...spending.map((s) => s.category.id),
+  ]);
+
+  return [...categoryIds]
+    .map((id) => {
+      const category = categories.find((c) => c.id === id);
+      if (!category) return null;
+      const spent = spentMap.get(id) ?? 0;
+      const budgeted = budgetMap.get(id) ?? 0;
+      return {
+        category,
+        budgeted,
+        spent,
+        remaining: budgeted - spent,
+      };
+    })
+    .filter(
+      (row): row is { category: Category; budgeted: number; spent: number; remaining: number } =>
+        row !== null,
+    )
+    .sort((a, b) => b.spent - a.spent);
 }
 
 export function goalProgress(goal: Goal): number {
@@ -176,19 +247,56 @@ export function uncategorizedTransactions(transactions: Transaction[], month: Da
 export function incomeAllocation(
   transactions: Transaction[],
   budgets: Budget[],
-  month: Date
+  month: Date,
+  categories: Category[] = [],
 ): { label: string; amount: number; color: string }[] {
   const income = monthlyIncome(transactions, month);
-  const spend = monthlySpend(transactions, month);
   const monthKey = format(month, "yyyy-MM");
-  const savingsTarget = budgets
-    .filter((b) => b.month === monthKey)
-    .reduce((sum, b) => sum + b.amount, 0) * 0.1;
-  const bills = spend * 0.27;
+  const monthBudgets = budgets.filter((b) => b.month === monthKey);
+
+  const billsCategoryIds = new Set(
+    categories.filter((c) => c.group === "bills").map((c) => c.id),
+  );
+  const savingsCategoryIds = new Set(
+    categories.filter((c) => c.group === "savings").map((c) => c.id),
+  );
+
+  let billsBudgeted = 0;
+  let savingsBudgeted = 0;
+  let spendingBudgeted = 0;
+  for (const b of monthBudgets) {
+    if (billsCategoryIds.has(b.categoryId)) billsBudgeted += b.amount;
+    else if (savingsCategoryIds.has(b.categoryId)) savingsBudgeted += b.amount;
+    else spendingBudgeted += b.amount;
+  }
+
+  // Partition actual expenses so fallbacks never double-count across slices.
+  let billsSpent = 0;
+  let savingsSpent = 0;
+  let spendingSpent = 0;
+  for (const t of getTransactionsInMonth(transactions, month)) {
+    if (t.type !== "expense" || t.isIgnored) continue;
+    if (t.categoryId && billsCategoryIds.has(t.categoryId)) {
+      billsSpent += t.amount;
+    } else if (t.categoryId && savingsCategoryIds.has(t.categoryId)) {
+      savingsSpent += t.amount;
+    } else {
+      spendingSpent += t.amount;
+    }
+  }
+
+  // Prefer budget rows; fall back to that group's actual spend only.
+  const spendingAmount = spendingBudgeted > 0 ? spendingBudgeted : spendingSpent;
+  const billsAmount = billsBudgeted > 0 ? billsBudgeted : billsSpent;
+  const savingsAmount = savingsBudgeted > 0 ? savingsBudgeted : savingsSpent;
+
+  const allocated = spendingAmount + billsAmount + savingsAmount;
+  const remaining = Math.max(0, (income || allocated) - allocated);
+
   return [
-    { label: "Spending", amount: spend, color: "#1E40AF" },
-    { label: "Savings target", amount: Math.round(savingsTarget), color: "#3B82F6" },
-    { label: "Bills & utilities", amount: Math.round(bills), color: "#93C5FD" },
-    { label: "Remaining", amount: Math.max(0, income - spend - savingsTarget - bills), color: "#D1FAE5" },
+    { label: "Spending", amount: spendingAmount, color: "#1E40AF" },
+    { label: "Bills", amount: billsAmount, color: "#93C5FD" },
+    { label: "Savings", amount: savingsAmount, color: "#3B82F6" },
+    { label: "Remaining", amount: remaining, color: "#D1FAE5" },
   ].filter((item) => item.amount > 0);
 }
