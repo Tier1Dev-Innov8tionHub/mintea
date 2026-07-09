@@ -3,6 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/modal";
 import { GoalIcon } from "@/components/icons/category-icon";
+import { Money } from "@/components/ui/money";
 import { formatCurrency } from "@/lib/format";
 import { goalProgress } from "@/lib/calculations";
 import type { Goal } from "@/lib/db/schema";
@@ -29,16 +30,22 @@ export function GoalProgressCard({
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-2">
                 <p className="truncate font-semibold text-gray-900">{goal.name}</p>
-                <p className="shrink-0 text-sm font-semibold tabular-nums text-gray-900">
-                  {formatCurrency(goal.currentAmount)}
-                </p>
+                <Money
+                  value={goal.currentAmount}
+                  className="shrink-0 text-sm font-semibold tabular-nums text-gray-900"
+                />
               </div>
               <Progress value={progress} className="mt-2.5 h-1.5" />
               <div className="mt-1.5 flex items-center justify-between">
                 <p className="text-xs text-gray-500">
-                  {goal.status === "paused"
-                    ? "Paused"
-                    : `${Math.round(progress)}% of ${formatCurrency(goal.targetAmount)}`}
+                  {goal.status === "paused" ? (
+                    "Paused"
+                  ) : (
+                    <>
+                      {Math.round(progress)}% of{" "}
+                      <Money value={goal.targetAmount} />
+                    </>
+                  )}
                 </p>
                 {goal.status === "active" && progress > 0 && (
                   <p className="text-xs font-medium text-emerald-600">On track</p>
@@ -77,6 +84,7 @@ export function AccountRow({
       </div>
       <div className="flex items-center gap-1.5">
         <span
+          data-sensitive
           className={cn("font-semibold tabular-nums", color ?? "text-gray-900")}
           style={color ? { color } : undefined}
         >
@@ -136,6 +144,7 @@ export function TransactionRow({
         </div>
       </div>
       <span
+        data-sensitive
         className={cn(
           "shrink-0 pl-3 font-semibold tabular-nums",
           type === "income" ? "text-emerald-600" : "text-gray-900",

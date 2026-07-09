@@ -6,6 +6,8 @@ import { AppProvider } from "@/components/layout/app-provider";
 import { OnboardingGuard } from "@/components/layout/onboarding-guard";
 import { ConvexClientProvider } from "@/components/providers/convex-client-provider";
 
+const privacyInitScript = `try{if(localStorage.getItem('mintea:privacy')==='1'){document.documentElement.classList.add('privacy-hidden')}}catch(e){}`;
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -52,8 +54,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full`}>
+    <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
       <body className="min-h-full bg-[#f3f4f6] font-sans antialiased">
+        <script dangerouslySetInnerHTML={{ __html: privacyInitScript }} />
         <ClerkProvider>
           <ConvexClientProvider>
             <AppProvider>

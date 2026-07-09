@@ -10,6 +10,7 @@ import { GoalProgressCard } from "@/components/dashboard/cards";
 import { GoalIcon } from "@/components/icons/category-icon";
 import { useGoals, useFinanceMutations } from "@/lib/db/hooks";
 import { formatCurrency } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 import { goalProgress } from "@/lib/calculations";
 import { Plus } from "lucide-react";
 
@@ -57,11 +58,11 @@ function GoalRing({
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
         <GoalIcon icon={icon} size={28} className="mb-1 text-white" />
-        <p className="text-3xl font-bold tabular-nums">
+        <p data-sensitive className="text-3xl font-bold tabular-nums">
           {formatCurrency(current)}
         </p>
         <p className="mt-0.5 text-xs text-white/80">
-          {Math.round(progress)}% of {formatCurrency(target)}
+          {Math.round(progress)}% of <Money value={target} />
         </p>
       </div>
     </div>
@@ -200,19 +201,22 @@ export default function GoalsPage() {
               <CardContent className="space-y-0 divide-y divide-gray-100 p-0">
                 <div className="flex items-center justify-between px-5 py-4">
                   <span className="text-sm text-gray-500">Total Goal</span>
-                  <span className="font-semibold tabular-nums">
+                  <span data-sensitive className="font-semibold tabular-nums">
                     {formatCurrency(selectedGoal.targetAmount)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between px-5 py-4">
                   <span className="text-sm text-gray-500">Saved</span>
-                  <span className="font-semibold tabular-nums text-emerald-700">
+                  <span
+                    data-sensitive
+                    className="font-semibold tabular-nums text-emerald-700"
+                  >
                     {formatCurrency(selectedGoal.currentAmount)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between px-5 py-4">
                   <span className="text-sm text-gray-500">Remaining</span>
-                  <span className="font-semibold tabular-nums">
+                  <span data-sensitive className="font-semibold tabular-nums">
                     {formatCurrency(
                       Math.max(
                         0,

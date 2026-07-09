@@ -123,19 +123,22 @@ export default function NetWorthPage() {
         <Card>
           <CardContent className="p-4">
             <p className="text-sm text-gray-500">Net worth</p>
-            <p className="mt-1 text-3xl font-bold text-gray-900">
+            <p
+              data-sensitive
+              className="mt-1 text-3xl font-bold text-gray-900"
+            >
               {formatCurrency(breakdown.netWorth)}
             </p>
             <div className="mt-3 grid grid-cols-2 gap-3">
               <div>
                 <p className="text-xs text-gray-500">Assets</p>
-                <p className="font-semibold text-emerald-700">
+                <p data-sensitive className="font-semibold text-emerald-700">
                   {formatCurrency(breakdown.assets)}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-gray-500">Liabilities</p>
-                <p className="font-semibold text-indigo-700">
+                <p data-sensitive className="font-semibold text-indigo-700">
                   {formatCurrency(breakdown.liabilities)}
                 </p>
               </div>
@@ -188,6 +191,7 @@ export default function NetWorthPage() {
                     <span className="font-medium">{row.label}</span>
                   </div>
                   <span
+                    data-sensitive
                     className={
                       row.type === "credit"
                         ? "font-semibold text-indigo-700"
@@ -242,6 +246,7 @@ export default function NetWorthPage() {
                       </div>
                     </div>
                     <span
+                      data-sensitive
                       className={
                         account.type === "credit"
                           ? "font-semibold text-indigo-700"

@@ -272,7 +272,10 @@ export default function RecurringPage() {
         <Card>
           <CardContent className="p-5">
             <p className="text-sm text-gray-500">Est. monthly recurring</p>
-            <p className="mt-1 text-3xl font-bold tracking-tight tabular-nums">
+            <p
+              data-sensitive
+              className="mt-1 text-3xl font-bold tracking-tight tabular-nums"
+            >
               {formatCurrency(monthlyTotal)}
             </p>
             <p className="mt-1 text-xs text-gray-400">
@@ -681,7 +684,7 @@ function BillCard({
             <p className="truncate text-xs text-gray-400">{accountName}</p>
           )}
         </div>
-        <p className="font-semibold tabular-nums">
+        <p data-sensitive className="font-semibold tabular-nums">
           {formatCurrency(bill.amount)}
         </p>
         {bill.active && (

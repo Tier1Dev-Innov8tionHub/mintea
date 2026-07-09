@@ -79,3 +79,11 @@ body {
 .animate-fade-up {
   animation: fade-up 0.45s ease-out both;
 }
+
+/* Privacy mode: blur sensitive amounts when enabled */
+html.privacy-hidden [data-sensitive] {
+  filter: blur(8px);
+  -webkit-filter: blur(8px);
+  user-select: none;
+  transition: filter 0.15s ease;
+}

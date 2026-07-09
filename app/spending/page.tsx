@@ -27,6 +27,7 @@ import {
   budgetStatus,
 } from "@/lib/calculations";
 import { formatCurrency, formatMonthYear, getMonthKey } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 import { addMonths, subMonths } from "date-fns";
 import {
   ChevronLeft,
@@ -114,14 +115,16 @@ export default function SpendingPage() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-gray-500">Total spent</p>
-                <p className="text-3xl font-bold">{formatCurrency(spend)}</p>
+                <p data-sensitive className="text-3xl font-bold">
+                  {formatCurrency(spend)}
+                </p>
               </div>
               {totalBudgeted > 0 && (
                 <Link
                   href="/budgets"
                   className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700"
                 >
-                  {formatCurrency(totalBudgeted)} budgeted
+                  <Money value={totalBudgeted} /> budgeted
                 </Link>
               )}
             </div>
@@ -135,7 +138,7 @@ export default function SpendingPage() {
                 <span
                   className={`text-sm font-medium ${diff <= 0 ? "text-emerald-600" : "text-amber-600"}`}
                 >
-                  {formatCurrency(Math.abs(diff))}{" "}
+                  <Money value={Math.abs(diff)} />{" "}
                   {diff <= 0 ? "less" : "more"} than last month
                 </span>
               </div>
@@ -149,9 +152,17 @@ export default function SpendingPage() {
                   }
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  {spend > totalBudgeted
-                    ? `${formatCurrency(spend - totalBudgeted)} over category budgets`
-                    : `${formatCurrency(totalBudgeted - spend)} under category budgets`}
+                  {spend > totalBudgeted ? (
+                    <>
+                      <Money value={spend - totalBudgeted} /> over category
+                      budgets
+                    </>
+                  ) : (
+                    <>
+                      <Money value={totalBudgeted - spend} /> under category
+                      budgets
+                    </>
+                  )}
                 </p>
               </div>
             )}
@@ -193,6 +204,7 @@ export default function SpendingPage() {
                             {category.name}
                           </span>
                           <span
+                            data-sensitive
                             className={`text-sm font-semibold ${over ? "text-red-500" : ""}`}
                           >
                             {budget
@@ -285,7 +297,7 @@ export default function SpendingPage() {
                     </div>
                     <span className="font-medium">{item.label}</span>
                   </div>
-                  <span className="font-semibold">
+                  <span data-sensitive className="font-semibold">
                     {formatCurrency(item.amount)}
                   </span>
                 </div>

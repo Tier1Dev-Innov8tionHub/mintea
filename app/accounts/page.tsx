@@ -211,6 +211,7 @@ function InlineBalance({
   return (
     <button
       type="button"
+      data-sensitive
       onClick={() => setDraft(String(account.balance))}
       className={cn(
         "rounded-lg px-2 py-1 font-semibold tabular-nums hover:bg-gray-100",
@@ -363,7 +364,7 @@ export default function AccountsPage() {
         <Card>
           <CardContent className="p-4">
             <p className="text-sm text-gray-500">Total of balances you can see</p>
-            <p className="text-3xl font-bold text-gray-900 mt-1">
+            <p data-sensitive className="text-3xl font-bold text-gray-900 mt-1">
               {formatCurrency(total)}
             </p>
             <p className="text-xs text-gray-400 mt-1">
@@ -393,7 +394,7 @@ export default function AccountsPage() {
                     {section.label.toUpperCase()}
                   </p>
                   {section.items.length > 0 && (
-                    <p className="text-xs text-gray-400 tabular-nums">
+                    <p data-sensitive className="text-xs text-gray-400 tabular-nums">
                       {formatCurrency(section.sectionTotal)}
                     </p>
                   )}

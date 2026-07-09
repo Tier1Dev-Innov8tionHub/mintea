@@ -6,6 +6,7 @@ import { Settings, ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { PrivacyToggle } from "./privacy-toggle";
 
 interface MobileShellProps {
   title?: string;
@@ -62,8 +63,9 @@ export function MobileShell({
               {title ?? today}
             </p>
           </div>
-          <div className="flex w-16 items-center justify-end gap-1.5">
+          <div className="flex min-w-16 items-center justify-end gap-1.5">
             {headerExtra}
+            <PrivacyToggle />
             {/* Account controls live in the sidebar on desktop */}
             <div className="md:hidden">
               <Show when="signed-out">

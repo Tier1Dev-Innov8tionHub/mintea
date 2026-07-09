@@ -98,7 +98,9 @@ export function BudgetDonut({ data, total, size = 180 }: BudgetDonutProps) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <p className="text-xs text-gray-500">Monthly earnings</p>
-        <p className="text-2xl font-bold">{formatCurrency(total)}</p>
+        <p data-sensitive className="text-2xl font-bold">
+          {formatCurrency(total)}
+        </p>
       </div>
     </div>
   );

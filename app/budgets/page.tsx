@@ -22,6 +22,7 @@ import {
   monthlyIncome,
 } from "@/lib/calculations";
 import { formatCurrency, getMonthKey } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 import { addMonths, subMonths, format } from "date-fns";
 import { ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react";
 import type { Category } from "@/lib/db/schema";
@@ -116,7 +117,7 @@ export default function BudgetsPage() {
                   />
                   <div>
                     <p className="text-xs text-gray-500">{item.label}</p>
-                    <p className="text-sm font-semibold">
+                    <p data-sensitive className="text-sm font-semibold">
                       {formatCurrency(item.amount)}
                     </p>
                   </div>
@@ -130,7 +131,7 @@ export default function BudgetsPage() {
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-xs text-gray-500">Budgeted</p>
-              <p className="text-xl font-bold text-emerald-600">
+              <p data-sensitive className="text-xl font-bold text-emerald-600">
                 {formatCurrency(totalBudgeted)}
               </p>
             </CardContent>
@@ -138,7 +139,9 @@ export default function BudgetsPage() {
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-xs text-gray-500">Spent</p>
-              <p className="text-xl font-bold">{formatCurrency(totalSpent)}</p>
+              <p data-sensitive className="text-xl font-bold">
+                {formatCurrency(totalSpent)}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -171,6 +174,7 @@ export default function BudgetsPage() {
                               {item.category.name}
                             </span>
                             <span
+                              data-sensitive
                               className={`text-sm font-semibold ${over ? "text-red-500" : ""}`}
                             >
                               {formatCurrency(item.spent)} /{" "}
@@ -184,9 +188,16 @@ export default function BudgetsPage() {
                             }
                           />
                           <p className="mt-1 text-xs text-gray-500">
-                            {over
-                              ? `${formatCurrency(item.spent - item.budgeted)} over budget`
-                              : `${formatCurrency(item.remaining)} remaining`}
+                            {over ? (
+                              <>
+                                <Money value={item.spent - item.budgeted} /> over
+                                budget
+                              </>
+                            ) : (
+                              <>
+                                <Money value={item.remaining} /> remaining
+                              </>
+                            )}
                           </p>
                         </div>
                       </div>
@@ -226,7 +237,7 @@ export default function BudgetsPage() {
                       <div className="flex-1">
                         <p className="font-medium">{item.category.name}</p>
                         <p className="text-xs text-gray-500">
-                          Spent {formatCurrency(item.spent)} · no budget
+                          Spent <Money value={item.spent} /> · no budget
                         </p>
                       </div>
                       <span className="text-xs font-medium text-emerald-600">

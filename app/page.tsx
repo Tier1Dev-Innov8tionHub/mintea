@@ -33,6 +33,7 @@ import {
   dailySpendingChart,
 } from "@/lib/calculations";
 import { formatCurrency, formatShortDate } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 import { subMonths } from "date-fns";
 import {
   Building2,
@@ -126,7 +127,10 @@ export default function DashboardPage() {
           <CardContent className="p-0">
             <div className="px-5 pb-2 pt-5">
               <p className="text-sm text-gray-500">Current spend this month</p>
-              <p className="mt-1 text-4xl font-bold tracking-tight text-gray-900 tabular-nums">
+              <p
+                data-sensitive
+                className="mt-1 text-4xl font-bold tracking-tight text-gray-900 tabular-nums"
+              >
                 {formatCurrency(spend)}
               </p>
               <div className="mt-2.5 flex items-center gap-1.5">
@@ -134,14 +138,14 @@ export default function DashboardPage() {
                   <>
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                     <span className="text-sm font-medium text-gray-600">
-                      {formatCurrency(diff)} below budget
+                      <Money value={diff} /> below budget
                     </span>
                   </>
                 ) : (
                   <>
                     <TrendingDown className="h-4 w-4 text-amber-500" />
                     <span className="text-sm font-medium text-amber-700">
-                      {formatCurrency(Math.abs(diff))} over budget
+                      <Money value={Math.abs(diff)} /> over budget
                     </span>
                   </>
                 )}
@@ -152,9 +156,15 @@ export default function DashboardPage() {
             </div>
             {lastMonthSpend > 0 && (
               <p className="px-5 pb-3 text-xs text-gray-400">
-                {spend < lastMonthSpend
-                  ? `${formatCurrency(lastMonthSpend - spend)} less than last month`
-                  : `${formatCurrency(spend - lastMonthSpend)} more than last month`}
+                {spend < lastMonthSpend ? (
+                  <>
+                    <Money value={lastMonthSpend - spend} /> less than last month
+                  </>
+                ) : (
+                  <>
+                    <Money value={spend - lastMonthSpend} /> more than last month
+                  </>
+                )}
               </p>
             )}
             <Link
