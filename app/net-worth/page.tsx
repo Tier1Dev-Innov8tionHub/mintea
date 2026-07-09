@@ -85,7 +85,10 @@ export default function NetWorthPage() {
     [filteredAccounts],
   );
 
+  const canCapture = viewFilter === "all";
+
   const handleCapture = async () => {
+    if (!canCapture) return;
     setCapturing(true);
     setMessage(null);
     try {
@@ -106,7 +109,7 @@ export default function NetWorthPage() {
         <button
           type="button"
           onClick={() => void handleCapture()}
-          disabled={capturing}
+          disabled={capturing || !canCapture}
           className="rounded-full p-1 hover:bg-white/10 disabled:opacity-50"
           aria-label="Capture balance snapshot"
         >
@@ -150,7 +153,7 @@ export default function NetWorthPage() {
                 size="sm"
                 variant="outline"
                 className="gap-1.5"
-                disabled={capturing || accounts.length === 0}
+                disabled={capturing || accounts.length === 0 || !canCapture}
                 onClick={() => void handleCapture()}
               >
                 <Camera className="h-3.5 w-3.5" />
@@ -158,6 +161,11 @@ export default function NetWorthPage() {
               </Button>
             </div>
             <NetWorthChart data={chartData} />
+            {!canCapture && (
+              <p className="mt-2 text-center text-xs text-gray-500">
+                Snapshots capture total net worth. Switch to All to save one.
+              </p>
+            )}
             {message && (
               <p className="mt-2 text-center text-xs text-gray-500">{message}</p>
             )}

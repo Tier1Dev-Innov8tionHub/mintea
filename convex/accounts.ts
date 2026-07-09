@@ -157,7 +157,7 @@ export const update = mutation({
     if (args.color !== undefined) patch.color = args.color;
     if (args.last4 !== undefined) {
       patch.last4 =
-        args.last4 === null ? "" : (normalizeLast4(args.last4) ?? "");
+        args.last4 === null ? undefined : normalizeLast4(args.last4);
     }
     if (changingSharing) {
       patch.purpose = nextPurpose;
