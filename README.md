@@ -52,6 +52,19 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) and sign in with an allowlisted account.
 
+### Testing
+
+```bash
+npm test         # run the Vitest suite once
+npm run test:watch  # watch mode
+```
+
+Unit tests live in `tests/` and cover the pure logic in `lib/calculations/*`,
+account access rules (`convex/lib/accountAccess.ts`), account-view filtering,
+recurring date math, and the auth allowlist. They run locally only — they are
+**not** part of the Vercel build, so they add no build time. Run `npm test`
+before pushing if you touch calculations or access-control logic.
+
 ### Auth setup (production)
 
 1. Create a Clerk application; enable Google (and/or email) as needed.
